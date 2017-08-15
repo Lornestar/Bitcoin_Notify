@@ -1,0 +1,9 @@
+D:\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\bin\Bitcoin_Notify.dll
+D:\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\bin\Bitcoin_Notify.pdb
+D:\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.dll
+D:\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.pdb
+Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\bin\Bitcoin_Notify.dll.config
+Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\bin\Bitcoin_Notify.dll
+Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\bin\Bitcoin_Notify.pdb
+Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.dll
+Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.pdb

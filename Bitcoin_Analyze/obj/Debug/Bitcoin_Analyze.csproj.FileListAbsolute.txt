@@ -1,0 +1,10 @@
+D:\Bitcoin\Bitcoin_Analyze\bin\Bitcoin_Analyze.dll
+D:\Bitcoin\Bitcoin_Analyze\bin\Bitcoin_Analyze.pdb
+D:\Bitcoin\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.dll
+D:\Bitcoin\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.pdb
+Z:\Documents\Bitcoin\Bitcoin_Analyze\bin\Bitcoin_Analyze.dll.config
+Z:\Documents\Bitcoin\Bitcoin_Analyze\bin\Bitcoin_Analyze.dll
+Z:\Documents\Bitcoin\Bitcoin_Analyze\bin\Bitcoin_Analyze.pdb
+Z:\Documents\Bitcoin\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.dll
+Z:\Documents\Bitcoin\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.pdb
+Z:\Documents\Bitcoin\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.csprojResolveAssemblyReference.cache
