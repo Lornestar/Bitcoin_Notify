@@ -18,6 +18,8 @@ namespace Bitcoin_Notify_DB
 	public partial struct Tables
 	{
 		
+		public static readonly string ArbResult = @"Arb_Results";
+        
 		public static readonly string Currency = @"Currencies";
         
 		public static readonly string CurrencyCloudMarket = @"CurrencyCloud_Markets";
@@ -30,9 +32,15 @@ namespace Bitcoin_Notify_DB
         
 		public static readonly string Exchange = @"Exchanges";
         
+		public static readonly string MarketOrderbook = @"Market_Orderbooks";
+        
 		public static readonly string MarketDatum = @"MarketData";
         
 		public static readonly string Market = @"Markets";
+        
+		public static readonly string MarketsStatic = @"Markets_Static";
+        
+		public static readonly string Notification = @"Notifications";
         
 		public static readonly string PathRoute = @"Path_Routes";
         
@@ -45,6 +53,11 @@ namespace Bitcoin_Notify_DB
     #region Schemas
     public partial class Schemas {
 		
+		public static TableSchema.Table ArbResult
+		{
+            get { return DataService.GetSchema("Arb_Results", "Bitcoin_Notify"); }
+		}
+        
 		public static TableSchema.Table Currency
 		{
             get { return DataService.GetSchema("Currencies", "Bitcoin_Notify"); }
@@ -75,6 +88,11 @@ namespace Bitcoin_Notify_DB
             get { return DataService.GetSchema("Exchanges", "Bitcoin_Notify"); }
 		}
         
+		public static TableSchema.Table MarketOrderbook
+		{
+            get { return DataService.GetSchema("Market_Orderbooks", "Bitcoin_Notify"); }
+		}
+        
 		public static TableSchema.Table MarketDatum
 		{
             get { return DataService.GetSchema("MarketData", "Bitcoin_Notify"); }
@@ -83,6 +101,16 @@ namespace Bitcoin_Notify_DB
 		public static TableSchema.Table Market
 		{
             get { return DataService.GetSchema("Markets", "Bitcoin_Notify"); }
+		}
+        
+		public static TableSchema.Table MarketsStatic
+		{
+            get { return DataService.GetSchema("Markets_Static", "Bitcoin_Notify"); }
+		}
+        
+		public static TableSchema.Table Notification
+		{
+            get { return DataService.GetSchema("Notifications", "Bitcoin_Notify"); }
 		}
         
 		public static TableSchema.Table PathRoute
@@ -107,9 +135,13 @@ namespace Bitcoin_Notify_DB
     public partial struct Views 
     {
 		
+		public static readonly string VwArbResult = @"vw_Arb_Results";
+        
 		public static readonly string VwCurrencyCloudMarket = @"vw_CurrencyCloud_Markets";
         
 		public static readonly string VwExchangeCurrency = @"vw_Exchange_Currency";
+        
+		public static readonly string VwMarketDatum = @"vw_MarketData";
         
 		public static readonly string VwMarket = @"vw_Markets";
         

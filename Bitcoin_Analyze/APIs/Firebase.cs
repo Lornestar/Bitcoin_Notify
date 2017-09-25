@@ -83,7 +83,7 @@ namespace Bitcoin_Analyze.APIs
                     }
                 }
             }
-            if (type == 1)
+            /*if (type == 1)
             {
                 strresponse = Web_Request("https://lornestar.firebaseio.com/rippletrade/.json") ;
 
@@ -154,9 +154,9 @@ namespace Bitcoin_Analyze.APIs
                     {
                     }
                 }
-            }
-            
-            
+            }*/
+
+
             return dttemp;
         }
 

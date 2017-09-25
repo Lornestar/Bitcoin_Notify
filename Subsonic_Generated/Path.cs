@@ -130,7 +130,7 @@ namespace Bitcoin_Notify_DB
 				colvarPathKey.ColumnName = "path_key";
 				colvarPathKey.DataType = DbType.Int32;
 				colvarPathKey.MaxLength = 0;
-				colvarPathKey.AutoIncrement = true;
+				colvarPathKey.AutoIncrement = false;
 				colvarPathKey.IsNullable = false;
 				colvarPathKey.IsPrimaryKey = true;
 				colvarPathKey.IsForeignKey = false;
@@ -151,19 +151,6 @@ namespace Bitcoin_Notify_DB
 				colvarPathName.DefaultSetting = @"";
 				colvarPathName.ForeignKeyTableName = "";
 				schema.Columns.Add(colvarPathName);
-				
-				TableSchema.TableColumn colvarPageOrder = new TableSchema.TableColumn(schema);
-				colvarPageOrder.ColumnName = "page_order";
-				colvarPageOrder.DataType = DbType.Int32;
-				colvarPageOrder.MaxLength = 0;
-				colvarPageOrder.AutoIncrement = false;
-				colvarPageOrder.IsNullable = true;
-				colvarPageOrder.IsPrimaryKey = false;
-				colvarPageOrder.IsForeignKey = false;
-				colvarPageOrder.IsReadOnly = false;
-				colvarPageOrder.DefaultSetting = @"";
-				colvarPageOrder.ForeignKeyTableName = "";
-				schema.Columns.Add(colvarPageOrder);
 				
 				BaseSchema = schema;
 				//add this schema to the provider
@@ -190,14 +177,6 @@ namespace Bitcoin_Notify_DB
 			get { return GetColumnValue<string>(Columns.PathName); }
 			set { SetColumnValue(Columns.PathName, value); }
 		}
-		  
-		[XmlAttribute("PageOrder")]
-		[Bindable(true)]
-		public int? PageOrder 
-		{
-			get { return GetColumnValue<int?>(Columns.PageOrder); }
-			set { SetColumnValue(Columns.PageOrder, value); }
-		}
 		
 		#endregion
 		
@@ -218,13 +197,13 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Inserts a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Insert(string varPathName,int? varPageOrder)
+		public static void Insert(int varPathKey,string varPathName)
 		{
 			Path item = new Path();
 			
-			item.PathName = varPathName;
+			item.PathKey = varPathKey;
 			
-			item.PageOrder = varPageOrder;
+			item.PathName = varPathName;
 			
 		
 			if (System.Web.HttpContext.Current != null)
@@ -236,15 +215,13 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Updates a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Update(int varPathKey,string varPathName,int? varPageOrder)
+		public static void Update(int varPathKey,string varPathName)
 		{
 			Path item = new Path();
 			
 				item.PathKey = varPathKey;
 			
 				item.PathName = varPathName;
-			
-				item.PageOrder = varPageOrder;
 			
 			item.IsNew = false;
 			if (System.Web.HttpContext.Current != null)
@@ -273,20 +250,12 @@ namespace Bitcoin_Notify_DB
         
         
         
-        public static TableSchema.TableColumn PageOrderColumn
-        {
-            get { return Schema.Columns[2]; }
-        }
-        
-        
-        
         #endregion
 		#region Columns Struct
 		public struct Columns
 		{
 			 public static string PathKey = @"path_key";
 			 public static string PathName = @"path_name";
-			 public static string PageOrder = @"page_order";
 						
 		}
 		#endregion

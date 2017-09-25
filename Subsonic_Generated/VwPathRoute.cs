@@ -108,7 +108,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarSourceCurrency = new TableSchema.TableColumn(schema);
                 colvarSourceCurrency.ColumnName = "Source_Currency";
                 colvarSourceCurrency.DataType = DbType.AnsiString;
-                colvarSourceCurrency.MaxLength = 3;
+                colvarSourceCurrency.MaxLength = 10;
                 colvarSourceCurrency.AutoIncrement = false;
                 colvarSourceCurrency.IsNullable = true;
                 colvarSourceCurrency.IsPrimaryKey = false;
@@ -132,7 +132,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarDestinationCurrency = new TableSchema.TableColumn(schema);
                 colvarDestinationCurrency.ColumnName = "Destination_Currency";
                 colvarDestinationCurrency.DataType = DbType.AnsiString;
-                colvarDestinationCurrency.MaxLength = 3;
+                colvarDestinationCurrency.MaxLength = 10;
                 colvarDestinationCurrency.AutoIncrement = false;
                 colvarDestinationCurrency.IsNullable = true;
                 colvarDestinationCurrency.IsPrimaryKey = false;
@@ -168,7 +168,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarMarketShortname = new TableSchema.TableColumn(schema);
                 colvarMarketShortname.ColumnName = "market_shortname";
                 colvarMarketShortname.DataType = DbType.AnsiString;
-                colvarMarketShortname.MaxLength = 18;
+                colvarMarketShortname.MaxLength = 32;
                 colvarMarketShortname.AutoIncrement = false;
                 colvarMarketShortname.IsNullable = true;
                 colvarMarketShortname.IsPrimaryKey = false;
@@ -176,6 +176,18 @@ namespace Bitcoin_Notify_DB{
                 colvarMarketShortname.IsReadOnly = false;
                 
                 schema.Columns.Add(colvarMarketShortname);
+                
+                TableSchema.TableColumn colvarPathName = new TableSchema.TableColumn(schema);
+                colvarPathName.ColumnName = "path_name";
+                colvarPathName.DataType = DbType.String;
+                colvarPathName.MaxLength = 100;
+                colvarPathName.AutoIncrement = false;
+                colvarPathName.IsNullable = true;
+                colvarPathName.IsPrimaryKey = false;
+                colvarPathName.IsForeignKey = false;
+                colvarPathName.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarPathName);
                 
                 
                 BaseSchema = schema;
@@ -366,6 +378,20 @@ namespace Bitcoin_Notify_DB{
 			    SetColumnValue("market_shortname", value);
             }
         }
+	      
+        [XmlAttribute("PathName")]
+        [Bindable(true)]
+        public string PathName 
+	    {
+		    get
+		    {
+			    return GetColumnValue<string>("path_name");
+		    }
+            set 
+		    {
+			    SetColumnValue("path_name", value);
+            }
+        }
 	    
 	    #endregion
     
@@ -393,6 +419,8 @@ namespace Bitcoin_Notify_DB{
             public static string DestinationShortname = @"Destination_Shortname";
             
             public static string MarketShortname = @"market_shortname";
+            
+            public static string PathName = @"path_name";
             
 	    }
 	    #endregion

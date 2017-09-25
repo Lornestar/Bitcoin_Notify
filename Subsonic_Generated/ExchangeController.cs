@@ -80,7 +80,7 @@ namespace Bitcoin_Notify_DB
 	    /// Inserts a record, can be used with the Object Data Source
 	    /// </summary>
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
-	    public void Insert(int ExchangeKey,string ExchangeName,string ExchangeShortname,bool? Onlyalt,decimal? FeePercentage,decimal? WithdrawlFee)
+	    public void Insert(int ExchangeKey,string ExchangeName,string ExchangeShortname,bool? Onlyalt,decimal? FeePercentage,decimal? WithdrawlFee,bool? Isstatic)
 	    {
 		    Exchange item = new Exchange();
 		    
@@ -96,6 +96,8 @@ namespace Bitcoin_Notify_DB
             
             item.WithdrawlFee = WithdrawlFee;
             
+            item.Isstatic = Isstatic;
+            
 	    
 		    item.Save(UserName);
 	    }
@@ -104,7 +106,7 @@ namespace Bitcoin_Notify_DB
 	    /// Updates a record, can be used with the Object Data Source
 	    /// </summary>
         [DataObjectMethod(DataObjectMethodType.Update, true)]
-	    public void Update(int ExchangeKey,string ExchangeName,string ExchangeShortname,bool? Onlyalt,decimal? FeePercentage,decimal? WithdrawlFee)
+	    public void Update(int ExchangeKey,string ExchangeName,string ExchangeShortname,bool? Onlyalt,decimal? FeePercentage,decimal? WithdrawlFee,bool? Isstatic)
 	    {
 		    Exchange item = new Exchange();
 	        item.MarkOld();
@@ -121,6 +123,8 @@ namespace Bitcoin_Notify_DB
 			item.FeePercentage = FeePercentage;
 				
 			item.WithdrawlFee = WithdrawlFee;
+				
+			item.Isstatic = Isstatic;
 				
 	        item.Save(UserName);
 	    }

@@ -95,19 +95,44 @@ namespace Bitcoin_Notify
 
         public decimal Exchange_Rate_ccy_pair_Doupdate(string currency1, string currency2)
         {
-            string strcurrencycodes = currency1 + currency2;
+            decimal rate = 1;
 
-            //string strresponse = Web_Request("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + strcurrencycodes + "%22)&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=", null, 0, null,"");
-            string url = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + strcurrencycodes + "%22)&env=store://datatables.org/alltableswithkeys&format=json";
-            string strresponse = Web_Request(url, null);
+            if (currency1 == "USDT")
+            {
+                currency1 = "USD";
+            }
+            if (currency2 == "USDT")
+            {
+                currency2 = "USD";
+            }
+            
+                string strcurrencycodes = currency1 + currency2;
 
-            JObject o = JObject.Parse(strresponse);
-            JObject o2 = (JObject)o["query"];
-            JObject o3 = (JObject)o2["results"];
-            JObject o4 = (JObject)o3["rate"];
-            decimal rate = Convert.ToDecimal((string)o4["Rate"]);
+                //string strresponse = Web_Request("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + strcurrencycodes + "%22)&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=", null, 0, null,"");
+                string url = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + strcurrencycodes + "%22)&env=store://datatables.org/alltableswithkeys&format=json";
+                string strresponse = Web_Request(url, null);
+
+                JObject o = JObject.Parse(strresponse);
+                JObject o2 = (JObject)o["query"];
+                JObject o3 = (JObject)o2["results"];
+                JObject o4 = (JObject)o3["rate"];
+                rate = Convert.ToDecimal((string)o4["Rate"]);
+            
+            
 
             return rate;
+        }
+
+        public Models.MarketNode MappingMarketNode(DataRow dr)
+        {
+            Models.MarketNode mn = new Models.MarketNode();
+
+            mn.exchange_currency_key = Convert.ToInt32(dr["exchange_currency_key"]);
+            mn.isfiat = Convert.ToBoolean(dr["isfiat"]);
+            mn.currency = Convert.ToInt32(dr["currency"]);
+            mn.exchange_key = Convert.ToInt32(dr["exchange_key"]);
+
+            return mn;
         }
     }
 }

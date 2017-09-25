@@ -80,13 +80,13 @@ namespace Bitcoin_Notify_DB
 	    /// Inserts a record, can be used with the Object Data Source
 	    /// </summary>
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
-	    public void Insert(string PathName,int? PageOrder)
+	    public void Insert(int PathKey,string PathName)
 	    {
 		    Path item = new Path();
 		    
-            item.PathName = PathName;
+            item.PathKey = PathKey;
             
-            item.PageOrder = PageOrder;
+            item.PathName = PathName;
             
 	    
 		    item.Save(UserName);
@@ -96,7 +96,7 @@ namespace Bitcoin_Notify_DB
 	    /// Updates a record, can be used with the Object Data Source
 	    /// </summary>
         [DataObjectMethod(DataObjectMethodType.Update, true)]
-	    public void Update(int PathKey,string PathName,int? PageOrder)
+	    public void Update(int PathKey,string PathName)
 	    {
 		    Path item = new Path();
 	        item.MarkOld();
@@ -105,8 +105,6 @@ namespace Bitcoin_Notify_DB
 			item.PathKey = PathKey;
 				
 			item.PathName = PathName;
-				
-			item.PageOrder = PageOrder;
 				
 	        item.Save(UserName);
 	    }

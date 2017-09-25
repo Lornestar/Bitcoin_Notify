@@ -129,6 +129,18 @@ namespace Bitcoin_Notify_DB{
                 
                 schema.Columns.Add(colvarFeeStatic);
                 
+                TableSchema.TableColumn colvarApicall = new TableSchema.TableColumn(schema);
+                colvarApicall.ColumnName = "apicall";
+                colvarApicall.DataType = DbType.String;
+                colvarApicall.MaxLength = 10;
+                colvarApicall.AutoIncrement = false;
+                colvarApicall.IsNullable = true;
+                colvarApicall.IsPrimaryKey = false;
+                colvarApicall.IsForeignKey = false;
+                colvarApicall.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarApicall);
+                
                 TableSchema.TableColumn colvarRatechanges = new TableSchema.TableColumn(schema);
                 colvarRatechanges.ColumnName = "ratechanges";
                 colvarRatechanges.DataType = DbType.Boolean;
@@ -455,6 +467,20 @@ namespace Bitcoin_Notify_DB{
             }
         }
 	      
+        [XmlAttribute("Apicall")]
+        [Bindable(true)]
+        public string Apicall 
+	    {
+		    get
+		    {
+			    return GetColumnValue<string>("apicall");
+		    }
+            set 
+		    {
+			    SetColumnValue("apicall", value);
+            }
+        }
+	      
         [XmlAttribute("Ratechanges")]
         [Bindable(true)]
         public bool? Ratechanges 
@@ -697,6 +723,8 @@ namespace Bitcoin_Notify_DB{
             public static string FeePercentage = @"fee_percentage";
             
             public static string FeeStatic = @"fee_static";
+            
+            public static string Apicall = @"apicall";
             
             public static string Ratechanges = @"ratechanges";
             

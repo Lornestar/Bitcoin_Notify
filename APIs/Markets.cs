@@ -17,12 +17,10 @@ namespace Bitcoin_Notify.APIs
     {
         Site sitetemp = new Site();
         Firebase fb = new Firebase();
-        decimal buying = 0;
-        decimal selling = 0;
         decimal lasttrade = 0;
         string strtemp = "";
         string coinmktapikey = ConfigurationSettings.AppSettings["Coinmkt_API_Key"];
-        int currentexchangekey = 0;
+        
         int btccurrencykey = 1;
         int ltccurrencykey = 2;
         int ethcurrencykey = 3;
@@ -34,36 +32,39 @@ namespace Bitcoin_Notify.APIs
         decimal xrpmultiplier = decimal.Parse("0.25");
         decimal ethmultiplier = 295;
         int apierrorcountmax = 100;
+        decimal orderbookdepthpercentage = decimal.Parse(" 0.08");
 
         public void UpdateExchange(int exchangekey)
-        {
-            currentexchangekey = exchangekey;
+        {            
             switch (exchangekey)
             {
                 case 1: //quadriga
-                    UpdateQuadriga();
+                    UpdateQuadriga(exchangekey);
                     break;
                 case 2: //Coinbase
-                    UpdateGDax();
+                    UpdateGDax(exchangekey);
                     break;
                 case 3: //Kraken
-                    UpdateKraken();
+                    UpdateKraken(exchangekey);
                     break;
                 case 4: //Bitstamp
-                    UpdateBitstamp();
+                    UpdateBitstamp(exchangekey);
                     break;
                 case 5: //Bitflyer
-                    UpdateBitflyer();
+                    UpdateBitflyer(exchangekey);
                     break;
                 case 6: //coinsph
-                    UpdateCoinsph();
+                    UpdateCoinsph(exchangekey);
                     break;
-                case 7: //Poloniex
-                    UpdatePoloniex();
+                case 8: //Poloniex
+                    UpdatePoloniex(exchangekey);
                     break;
-                case 8: //Bitrex
-                    UpdateBittrex();
-                    break;                
+                case 7: //Bitrex
+                    UpdateBittrex(exchangekey);
+                    break;
+                case 9: //Gemnini
+                    UpdateGemini(exchangekey);
+                    break;
             }
         }
 
@@ -83,35 +84,25 @@ namespace Bitcoin_Notify.APIs
                 {
                     //exchangerate = cc.getexchangerate(sourcecurrency + destinationcurrency);
                     exchangerate = sitetemp.Exchange_Rate_ccy_pair_Doupdate(sourcecurrency, destinationcurrency);
+
+                    if (exchangerate <= decimal.Parse("0.0001"))
+                    {
+                        //gotta find inverse of it
+                        exchangerate = sitetemp.Exchange_Rate_ccy_pair_Doupdate(destinationcurrency, sourcecurrency);
+                        exchangerate = 1 / exchangerate;
+                    }
+
+                    Bitcoin_Notify_DB.SPs.UpdateCurrencyCloudMarketData(exchangerate, Convert.ToInt32(dr["currencycloud_market_key"])).Execute();
                 }
                 catch{
-                    //if doesn't work, then cc doesn't offer it
-                    exchangerate = sitetemp.Exchange_Rate_ccy_pair_Doupdate(sourcecurrency, destinationcurrency);
-                    decimal wiretransfermargin = decimal.Parse("1.02");
-
-
-                    if (exchangerate > 1)
-                    {
-                        exchangerate = exchangerate / wiretransfermargin;
-                    }
-                    else
-                    {
-                        exchangerate = exchangerate * wiretransfermargin;
-                    }
+                    
                 }
 
-                if (exchangerate <= decimal.Parse("0.0001"))
-                {
-                    //gotta find inverse of it
-                    exchangerate = sitetemp.Exchange_Rate_ccy_pair_Doupdate(destinationcurrency, sourcecurrency);
-                    exchangerate = 1 / exchangerate;
-                }
-
-                Bitcoin_Notify_DB.SPs.UpdateCurrencyCloudMarketData(exchangerate, Convert.ToInt32(dr["currencycloud_market_key"])).Execute();
+                
             }
         }
 
-        public void UpdateCoinsph()
+        public void UpdateCoinsph(int currentexchangekey)
         {
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -121,13 +112,9 @@ namespace Bitcoin_Notify.APIs
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
                 int apierrorcount = 0;
+                string apicall = dr["apicall"].ToString();
 
-                if (dr["apierrorcount"] != DBNull.Value)
-                {
-                    apierrorcount = Convert.ToInt32(dr["apierrorcount"]);
-                }
-
-                if (apierrorcount < apierrorcountmax)
+                if (apicall.Length > 0)
                 {
                     string strresponse = sitetemp.Web_Request("https://quote.coins.ph/v1/markets/" + currentsourcecurrency.ToUpper() + "-" + currentdestinationcurrency.ToUpper(), null);
 
@@ -138,12 +125,12 @@ namespace Bitcoin_Notify.APIs
 
                         JObject market = (JObject)o["market"];
 
-                        
-                        selling = Convert.ToDecimal( (string)market["bid"]);
+
+                        decimal selling = Convert.ToDecimal( (string)market["bid"]);
                         decimal sellingvolume = 100000000;
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
-                        buying = 1 / Convert.ToDecimal( (string)market["ask"]);
+                        decimal buying = 1 / Convert.ToDecimal( (string)market["ask"]);
                         decimal buyingvolume = 100000000;
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -158,7 +145,7 @@ namespace Bitcoin_Notify.APIs
             }
         }
 
-        public void UpdateKorbit()
+        public void UpdateKorbit(int currentexchangekey)
         {
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -187,12 +174,12 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o["asks"];
 
                         JArray o4 = (JArray)asks[0];
-                        selling = decimal.Parse((string)o4[0]);
+                        decimal selling = decimal.Parse((string)o4[0]);
                         decimal sellingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
                         o4 = (JArray)bids[0];
-                        buying = 1 / decimal.Parse((string)o4[0]);
+                        decimal buying = 1 / decimal.Parse((string)o4[0]);
                         decimal buyingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -207,7 +194,7 @@ namespace Bitcoin_Notify.APIs
             }
         }
 
-        public void UpdateBitflyer()
+        public void UpdateBitflyer(int currentexchangekey)
         {
            DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -217,15 +204,12 @@ namespace Bitcoin_Notify.APIs
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
                 int apierrorcount = 0;
+                string apicall = dr["apicall"].ToString();
+                
 
-                if (dr["apierrorcount"] != DBNull.Value)
+                if (apicall.Length > 0) 
                 {
-                    apierrorcount = Convert.ToInt32(dr["apierrorcount"]);
-                }
-
-                if (apierrorcount < apierrorcountmax) 
-                {
-                    string strresponse = sitetemp.Web_Request("http://api.bitflyer.jp/v1/getboard?product_code=" + currentsourcecurrency.ToUpper() + "_" + currentdestinationcurrency.ToUpper(), null);
+                    string strresponse = sitetemp.Web_Request("http://api.bitflyer.jp/v1/getboard?product_code=" + apicall, null);
 
 
                     try
@@ -236,12 +220,12 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o["asks"];
 
                         JObject o4 = (JObject)asks[0];
-                        selling = (decimal)o4["price"];
+                        decimal selling = (decimal)o4["price"];
                         decimal sellingvolume = (decimal)o4["size"];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
                         o4 = (JObject)bids[0];
-                        buying = 1 / (decimal)o4["price"];
+                        decimal buying = 1 / (decimal)o4["price"];
                         decimal buyingvolume = (decimal)o4["size"];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -257,7 +241,7 @@ namespace Bitcoin_Notify.APIs
         }
 
 
-        public void UpdateLuno()
+        public void UpdateLuno(int currentexchangekey)
         {
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -295,12 +279,12 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o["asks"];
 
                         JObject o4 = (JObject)bids[0];
-                        selling = decimal.Parse((string)o4["price"]);
+                        decimal selling = decimal.Parse((string)o4["price"]);
                         decimal sellingvolume = decimal.Parse((string)o4["volume"]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
                         o4 = (JObject)asks[0];
-                        buying = 1 / decimal.Parse((string)o4["price"]);
+                        decimal buying = 1 / decimal.Parse((string)o4["price"]);
                         decimal buyingvolume = decimal.Parse((string)o4["volume"]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -315,9 +299,9 @@ namespace Bitcoin_Notify.APIs
             }
         }
 
-        
 
-        public void UpdateCoinone()
+
+        public void UpdateCoinone(int currentexchangekey)
         {
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -346,12 +330,12 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o["ask"];
 
                         JObject o4 = (JObject) asks[0];
-                        selling = 1/ decimal.Parse((string)o4["price"]);
+                        decimal selling = 1/ decimal.Parse((string)o4["price"]);
                         decimal sellingvolume = decimal.Parse((string)o4["qty"]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
                         o4 = (JObject)bids[0];
-                        buying = decimal.Parse((string)o4["price"]);
+                        decimal buying = decimal.Parse((string)o4["price"]);
                         decimal buyingvolume = decimal.Parse((string)o4["qty"]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -366,7 +350,7 @@ namespace Bitcoin_Notify.APIs
             }
         }
 
-        public void UpdateQuadriga()
+        public void UpdateQuadriga(int currentexchangekey)
         {
             
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
@@ -376,13 +360,8 @@ namespace Bitcoin_Notify.APIs
                 string currentdestinationcurrency = dr["destination_currency"].ToString();
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
-                int apierrorcount = 0;
+                string apicall = dr["apicall"].ToString();
                 
-                if (dr["apierrorcount"] != DBNull.Value)
-                {
-                   apierrorcount = Convert.ToInt32(dr["apierrorcount"]);
-                }
-
                 decimal currentmultiplier = 0;
                 if (currentsourcecurrency == "BTC")
                 {
@@ -393,11 +372,11 @@ namespace Bitcoin_Notify.APIs
                     currentmultiplier = ethmultiplier;
                 }
 
-                if (apierrorcount < apierrorcountmax)
+                if (apicall.Length > 0)
                 {
-                    string strresponse = sitetemp.Web_Request("https://api.quadrigacx.com/v2/order_book?book=" + currentsourcecurrency.ToLower() + "_" + currentdestinationcurrency.ToLower(), null);
+                    string strresponse = sitetemp.Web_Request("https://api.quadrigacx.com/v2/order_book?book=" + apicall, null);
 
-                    string strresponse2 = sitetemp.Web_Request("https://api.quadrigacx.com/v2/ticker?book=" + currentsourcecurrency.ToLower() + "_" + currentdestinationcurrency.ToLower(), null);
+                    string strresponse2 = sitetemp.Web_Request("https://api.quadrigacx.com/v2/ticker?book=" + apicall, null);
 
                     try
                     {
@@ -409,12 +388,12 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o["asks"];
 
                         JArray o4 = (JArray)bids[0];
-                        selling = decimal.Parse((string)o4[0]);
+                        decimal selling = decimal.Parse((string)o4[0]);
                         decimal sellingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, marketvolume, marketkey).Execute();
 
                         o4 = (JArray)asks[0];
-                        buying = 1/decimal.Parse((string)o4[0]);
+                        decimal buying = 1/decimal.Parse((string)o4[0]);
                         decimal buyingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, marketvolume, marketkeyopposite).Execute();
 
@@ -430,7 +409,7 @@ namespace Bitcoin_Notify.APIs
                 
         }
 
-        public void UpdateGDax()
+        public void UpdateGDax(int currentexchangekey)
         {
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -439,16 +418,12 @@ namespace Bitcoin_Notify.APIs
                 string currentdestinationcurrency = dr["destination_currency"].ToString();
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
-                int apierrorcount = 0;
+                string apicall = dr["apicall"].ToString();
 
-                if (dr["apierrorcount"] != DBNull.Value)
+                
+                if (apicall.Length > 0)
                 {
-                    apierrorcount = Convert.ToInt32(dr["apierrorcount"]);
-                }
-
-                if (apierrorcount < apierrorcountmax)
-                {
-                    string strresponse = sitetemp.Web_Request("https://api.gdax.com/products/" + currentsourcecurrency.ToLower() + "-" + currentdestinationcurrency.ToLower() + "/book", null);
+                    string strresponse = sitetemp.Web_Request("https://api.gdax.com/products/" + apicall + "/book?level=25", null);
 
                     try
                     {
@@ -458,14 +433,49 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o["asks"];
 
                         JArray o4 = (JArray)bids[0];
-                        selling = decimal.Parse((string)o4[0]);
+                        decimal selling = decimal.Parse((string)o4[0]);
                         decimal sellingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
                         o4 = (JArray)asks[0];
-                        buying = 1 / decimal.Parse((string)o4[0]);
+                        decimal buying = 1 / decimal.Parse((string)o4[0]);
                         decimal buyingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
+
+
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkey).Execute();
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkeyopposite).Execute();
+                        //insert orderbook into db - max 8% diff
+                        foreach (JArray item in bids.Children())
+                        {
+                            o4 = item;
+                            decimal currentprice = decimal.Parse((string)o4[0]);
+                            decimal currentvolume = decimal.Parse((string)o4[1]);
+
+                            decimal currentdifference = (selling / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume).Execute();
+                        }
+
+                        foreach (JArray item in asks.Children())
+                        {
+                            o4 = item;
+                            decimal currentprice = 1 / decimal.Parse((string)o4[0]);
+                            decimal currentvolume = decimal.Parse((string)o4[1]);
+
+                            decimal currentdifference = (buying / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume).Execute();
+                        }
+
 
                     }
                     catch
@@ -478,19 +488,66 @@ namespace Bitcoin_Notify.APIs
             }
         }
 
-        
 
-        public void UpdateKraken()
+        public void UpdateGemini(int currentexchangekey)
+        {
+            DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
+            foreach (DataRow dr in dttemp.Rows)
+            {
+                string currentsourcecurrency = dr["source_currency"].ToString();
+                string currentdestinationcurrency = dr["destination_currency"].ToString();
+                int marketkey = Convert.ToInt32(dr["market_key"]);
+                int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
+                string apicall = dr["apicall"].ToString();
+
+
+                if (apicall.Length > 0)
+                {
+                    string strresponse = sitetemp.Web_Request("https://api.gemini.com/v1/book/" + apicall, null);
+
+                    try
+                    {
+                        JObject o = JObject.Parse(strresponse);
+
+
+                        JArray bids = (JArray)o["bids"];
+                        JArray asks = (JArray)o["asks"];
+
+                        JObject o4 = (JObject)bids[0];
+                        decimal selling = decimal.Parse((string)o4["price"]);
+                        decimal sellingvolume = decimal.Parse((string)o4["amount"]);
+                        Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
+
+                        o4 = (JObject)asks[0];
+                        decimal buying = 1 / decimal.Parse((string)o4["price"]);
+                        decimal buyingvolume = decimal.Parse((string)o4["amount"]);
+                        Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
+
+                    }
+                    catch
+                    {
+                        Bitcoin_Notify_DB.SPs.UpdateMarketAPIErrorsCount(marketkey).Execute();
+                    }
+                }
+
+
+            }
+        }
+
+
+
+        public void UpdateKraken(int currentexchangekey)
         {
             try
             {
-                DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
+                DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeForAPICall(currentexchangekey).GetDataSet().Tables[0];
                 foreach (DataRow dr in dttemp.Rows)
                 {                    
                     string currentsourcecurrency = dr["source_currency"].ToString();
                     string currentdestinationcurrency = dr["destination_currency"].ToString();
                     int marketkey = Convert.ToInt32(dr["market_key"]);
                     int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
+                    string apicall = dr["apicall"].ToString();
 
                     //figure out multiplier to convert volume to USD
                     decimal currentmultiplier = 0;
@@ -522,47 +579,60 @@ namespace Bitcoin_Notify.APIs
                         apierrorcount = Convert.ToInt32(dr["apierrorcount"]);
                     }
 
-                    if (apierrorcount < apierrorcountmax)
+                    if (apicall.Length > 0)
                     {                        
 
                         string strresponse = sitetemp.Web_Request("https://api.kraken.com/0/public/Ticker?pair=" + currentsourcecurrency + currentdestinationcurrency, null);
 
-                        JObject o = JObject.Parse(strresponse);
-
-                        JArray error = (JArray)o["error"];
-                        if (error.Count == 0)
+                        try
                         {
-                            string firstone = "X";
-                            string secondone = "X";
-                            if (Convert.ToBoolean(dr["source_currency_isfiat"]))
+                            JObject o = JObject.Parse(strresponse);
+
+                            JArray error = (JArray)o["error"];
+                            if (error.Count == 0)
                             {
-                                firstone = "Z";
+                                string firstone = "X";
+                                string secondone = "X";
+                                if (Convert.ToBoolean(dr["source_currency_isfiat"]))
+                                {
+                                    firstone = "Z";
+                                }
+                                if (Convert.ToBoolean(dr["destination_currency_isfiat"]))
+                                {
+                                    secondone = "Z";
+                                }
+
+
+
+                                JObject o2 = (JObject)o["result"];
+                                JObject o3 = (JObject)o2[firstone + currentsourcecurrency + secondone + currentdestinationcurrency];
+
+                                if (o3 == null)
+                                {
+                                    o3 = (JObject)o2[currentsourcecurrency + currentdestinationcurrency];
+                                }
+
+                                JArray o4 = (JArray)o3["b"];
+                                JArray o5 = (JArray)o3["v"];
+                                decimal selling = decimal.Parse((string)o4[0]);
+                                decimal sellingvolume = decimal.Parse((string)o5[1]) * currentmultiplier;
+                                Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
+
+                                o4 = (JArray)o3["a"];
+                                decimal buying = 1 / decimal.Parse((string)o4[0]);
+                                decimal buyingvolume = decimal.Parse((string)o5[1]) * currentmultiplier;
+                                Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
                             }
-                            if (Convert.ToBoolean(dr["destination_currency_isfiat"]))
+                            else
                             {
-                                secondone = "Z";
+                                Bitcoin_Notify_DB.SPs.UpdateMarketAPIErrorsCount(marketkey).Execute();
                             }
-
-                            
-
-                            JObject o2 = (JObject)o["result"];
-                            JObject o3 = (JObject)o2[firstone + currentsourcecurrency + secondone + currentdestinationcurrency];
-
-                            JArray o4 = (JArray)o3["b"];
-                            JArray o5 = (JArray)o3["v"];
-                            selling = decimal.Parse((string)o4[0]);
-                            decimal sellingvolume = decimal.Parse((string)o5[1]) * currentmultiplier;
-                            Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
-
-                            o4 = (JArray)o3["a"];
-                            buying = 1 / decimal.Parse((string)o4[0]);
-                            decimal buyingvolume = decimal.Parse((string)o5[1]) * currentmultiplier;
-                            Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
                         }
-                        else
+                        catch
                         {
-                            Bitcoin_Notify_DB.SPs.UpdateMarketAPIErrorsCount(marketkey).Execute();
+
                         }
+                        
                     }
                     
 
@@ -653,7 +723,7 @@ namespace Bitcoin_Notify.APIs
         }
 
 
-        public void UpdateBtce()
+        public void UpdateBtce(int currentexchangekey)
         {
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -684,12 +754,12 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o2["asks"];
 
                         JArray o4 = (JArray)bids[0];
-                        selling = (decimal)o4[0];
+                        decimal selling = (decimal)o4[0];
                         decimal sellingvolume = (decimal)o4[1];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
                         o4 = (JArray)asks[0];
-                        buying = 1 / (decimal)o4[0];
+                        decimal buying = 1 / (decimal)o4[0];
                         decimal buyingvolume = (decimal)o4[1];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -751,9 +821,9 @@ namespace Bitcoin_Notify.APIs
         }
 
 
-        
 
-        public void UpdateBitstamp()
+
+        public void UpdateBitstamp(int currentexchangekey)
         {
 
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
@@ -763,16 +833,11 @@ namespace Bitcoin_Notify.APIs
                 string currentdestinationcurrency = dr["destination_currency"].ToString();
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
-                int apierrorcount = 0;
+                string apicall = dr["apicall"].ToString();
 
-                if (dr["apierrorcount"] != DBNull.Value)
+                if (apicall.Length > 0)
                 {
-                    apierrorcount = Convert.ToInt32(dr["apierrorcount"]);
-                }
-
-                if (apierrorcount < 10000)
-                {
-                    string strresponse = sitetemp.Web_Request("https://www.bitstamp.net/api/v2/order_book/" + currentsourcecurrency.ToLower() + currentdestinationcurrency.ToLower(), null);
+                    string strresponse = sitetemp.Web_Request("https://www.bitstamp.net/api/v2/order_book/" + apicall, null);
 
 
                     try
@@ -783,12 +848,12 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o["asks"];
 
                         JArray o4 = (JArray)bids[0];
-                        selling = decimal.Parse((string)o4[0]);
+                        decimal selling = decimal.Parse((string)o4[0]);
                         decimal sellingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
                         o4 = (JArray)asks[0];
-                        buying = 1 / decimal.Parse((string)o4[0]);
+                        decimal buying = 1 / decimal.Parse((string)o4[0]);
                         decimal buyingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -912,7 +977,7 @@ namespace Bitcoin_Notify.APIs
             }
         }
 
-        public void UpdatePoloniex()
+        public void UpdatePoloniex(int currentexchangekey)
         {
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -921,12 +986,7 @@ namespace Bitcoin_Notify.APIs
                 string currentdestinationcurrency = dr["destination_currency"].ToString();
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
-                int apierrorcount = 0;
-
-                if (dr["apierrorcount"] != DBNull.Value)
-                {
-                    apierrorcount = Convert.ToInt32(dr["apierrorcount"]);
-                }
+                string apicall = dr["apicall"].ToString();
 
                 if (currentsourcecurrency.ToUpper() == "USD")
                 {
@@ -938,7 +998,7 @@ namespace Bitcoin_Notify.APIs
                     currentdestinationcurrency = "USDT";
                 }
 
-                if (apierrorcount < 10000)
+                if (apicall.Length > 0)
                 {
                     string strresponse = sitetemp.Web_Request("https://poloniex.com/public?command=returnOrderBook&depth=10&currencyPair=" + currentsourcecurrency.ToUpper() + "_" + currentdestinationcurrency.ToUpper(), null);
 
@@ -951,12 +1011,12 @@ namespace Bitcoin_Notify.APIs
                         JArray asks = (JArray)o["asks"];
 
                         JArray o4 = (JArray)asks[0];
-                        selling = 1 / decimal.Parse((string)o4[0]);
+                        decimal selling = 1 / decimal.Parse((string)o4[0]);
                         decimal sellingvolume = (decimal)o4[1];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
                         o4 = (JArray)bids[0];
-                        buying =  decimal.Parse((string)o4[0]);
+                        decimal buying =  decimal.Parse((string)o4[0]);
                         decimal buyingvolume = (decimal)o4[1];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -971,7 +1031,7 @@ namespace Bitcoin_Notify.APIs
             }
         }
 
-        public void UpdateBittrex()
+        public void UpdateBittrex(int currentexchangekey)
         {
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketsByExchangeInternally(currentexchangekey).GetDataSet().Tables[0];
             foreach (DataRow dr in dttemp.Rows)
@@ -980,12 +1040,7 @@ namespace Bitcoin_Notify.APIs
                 string currentdestinationcurrency = dr["destination_currency"].ToString();
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
-                int apierrorcount = 0;
-
-                if (dr["apierrorcount"] != DBNull.Value)
-                {
-                    apierrorcount = Convert.ToInt32(dr["apierrorcount"]);
-                }
+                string apicall = dr["apicall"].ToString();
 
                 if (currentsourcecurrency.ToUpper() == "USD")
                 {
@@ -997,9 +1052,9 @@ namespace Bitcoin_Notify.APIs
                     currentdestinationcurrency = "USDT";
                 }
 
-                if (apierrorcount < 10000)
+                if (apicall.Length > 0)
                 {
-                    string strresponse = sitetemp.Web_Request("https://bittrex.com/api/v1.1/public/getorderbook?type=both&market=" + currentsourcecurrency.ToUpper() + "-" + currentdestinationcurrency.ToUpper(), null);
+                    string strresponse = sitetemp.Web_Request("https://bittrex.com/api/v1.1/public/getorderbook?type=both&market=" + currentdestinationcurrency.ToUpper() + "-" + currentsourcecurrency.ToUpper(), null);
 
 
                     try
@@ -1011,13 +1066,13 @@ namespace Bitcoin_Notify.APIs
                         JArray bids = (JArray)o2["buy"];
                         JArray asks = (JArray)o2["sell"];
 
-                        JObject o4 = (JObject)asks[0];
-                        selling = 1 / (decimal)o4["Rate"];
+                        JObject o4 = (JObject)bids[0];
+                        decimal selling = (decimal)o4["Rate"];
                         decimal sellingvolume = (decimal)o4["Quantity"];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(selling, sellingvolume, marketkey).Execute();
 
-                        o4 = (JObject)bids[0];
-                        buying =  (decimal)o4["Rate"];
+                        o4 = (JObject)asks[0];
+                        decimal buying = 1/ (decimal)o4["Rate"];
                         decimal buyingvolume = (decimal)o4["Quantity"];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
@@ -1104,9 +1159,9 @@ namespace Bitcoin_Notify.APIs
             
             
             //BTC CAD
-            JObject o3 = (JObject)o2["BTCCAD"];            
-            buying = (decimal)o3["buy"];            
-            selling = (decimal)o3["sell"];
+            JObject o3 = (JObject)o2["BTCCAD"];
+            decimal buying = (decimal)o3["buy"];
+            decimal selling = (decimal)o3["sell"];
             lasttrade = (decimal)o3["last"];
 
             buying = buying * exchangerate;

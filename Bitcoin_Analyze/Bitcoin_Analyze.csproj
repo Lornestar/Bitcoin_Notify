@@ -172,8 +172,6 @@
     <Compile Include="Site.Master.designer.cs">
       <DependentUpon>Site.Master</DependentUpon>
     </Compile>
-    <Compile Include="Subsonic_Generated\AllStructs.cs" />
-    <Compile Include="Subsonic_Generated\RippleTrade\StoredProcedures.cs" />
     <Compile Include="Subsonic_Generated\StoredProcedures.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -207,7 +205,7 @@
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
-      <UserProperties UseJQuerySupport="False" UseAjaxifiedTemplates="False" />
+      <UserProperties UseAjaxifiedTemplates="False" UseJQuerySupport="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

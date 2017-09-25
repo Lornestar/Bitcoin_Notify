@@ -129,6 +129,18 @@ namespace Bitcoin_Notify_DB{
                 
                 schema.Columns.Add(colvarFeeStatic);
                 
+                TableSchema.TableColumn colvarApicall = new TableSchema.TableColumn(schema);
+                colvarApicall.ColumnName = "apicall";
+                colvarApicall.DataType = DbType.String;
+                colvarApicall.MaxLength = 10;
+                colvarApicall.AutoIncrement = false;
+                colvarApicall.IsNullable = true;
+                colvarApicall.IsPrimaryKey = false;
+                colvarApicall.IsForeignKey = false;
+                colvarApicall.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarApicall);
+                
                 TableSchema.TableColumn colvarRatechanges = new TableSchema.TableColumn(schema);
                 colvarRatechanges.ColumnName = "ratechanges";
                 colvarRatechanges.DataType = DbType.Boolean;
@@ -168,7 +180,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarSourceCurrency = new TableSchema.TableColumn(schema);
                 colvarSourceCurrency.ColumnName = "Source_Currency";
                 colvarSourceCurrency.DataType = DbType.AnsiString;
-                colvarSourceCurrency.MaxLength = 3;
+                colvarSourceCurrency.MaxLength = 4;
                 colvarSourceCurrency.AutoIncrement = false;
                 colvarSourceCurrency.IsNullable = true;
                 colvarSourceCurrency.IsPrimaryKey = false;
@@ -192,7 +204,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarDestinationCurrency = new TableSchema.TableColumn(schema);
                 colvarDestinationCurrency.ColumnName = "Destination_Currency";
                 colvarDestinationCurrency.DataType = DbType.AnsiString;
-                colvarDestinationCurrency.MaxLength = 3;
+                colvarDestinationCurrency.MaxLength = 4;
                 colvarDestinationCurrency.AutoIncrement = false;
                 colvarDestinationCurrency.IsNullable = true;
                 colvarDestinationCurrency.IsPrimaryKey = false;
@@ -228,7 +240,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarMarketShortname = new TableSchema.TableColumn(schema);
                 colvarMarketShortname.ColumnName = "market_shortname";
                 colvarMarketShortname.DataType = DbType.AnsiString;
-                colvarMarketShortname.MaxLength = 18;
+                colvarMarketShortname.MaxLength = 20;
                 colvarMarketShortname.AutoIncrement = false;
                 colvarMarketShortname.IsNullable = true;
                 colvarMarketShortname.IsPrimaryKey = false;
@@ -284,6 +296,42 @@ namespace Bitcoin_Notify_DB{
                 colvarDestinationCurrencyKey.IsReadOnly = false;
                 
                 schema.Columns.Add(colvarDestinationCurrencyKey);
+                
+                TableSchema.TableColumn colvarSourceCurrencyIsfiat = new TableSchema.TableColumn(schema);
+                colvarSourceCurrencyIsfiat.ColumnName = "Source_Currency_Isfiat";
+                colvarSourceCurrencyIsfiat.DataType = DbType.Boolean;
+                colvarSourceCurrencyIsfiat.MaxLength = 0;
+                colvarSourceCurrencyIsfiat.AutoIncrement = false;
+                colvarSourceCurrencyIsfiat.IsNullable = true;
+                colvarSourceCurrencyIsfiat.IsPrimaryKey = false;
+                colvarSourceCurrencyIsfiat.IsForeignKey = false;
+                colvarSourceCurrencyIsfiat.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarSourceCurrencyIsfiat);
+                
+                TableSchema.TableColumn colvarDestinationCurrencyIsfiat = new TableSchema.TableColumn(schema);
+                colvarDestinationCurrencyIsfiat.ColumnName = "Destination_Currency_Isfiat";
+                colvarDestinationCurrencyIsfiat.DataType = DbType.Boolean;
+                colvarDestinationCurrencyIsfiat.MaxLength = 0;
+                colvarDestinationCurrencyIsfiat.AutoIncrement = false;
+                colvarDestinationCurrencyIsfiat.IsNullable = true;
+                colvarDestinationCurrencyIsfiat.IsPrimaryKey = false;
+                colvarDestinationCurrencyIsfiat.IsForeignKey = false;
+                colvarDestinationCurrencyIsfiat.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarDestinationCurrencyIsfiat);
+                
+                TableSchema.TableColumn colvarApierrorcount = new TableSchema.TableColumn(schema);
+                colvarApierrorcount.ColumnName = "apierrorcount";
+                colvarApierrorcount.DataType = DbType.Int32;
+                colvarApierrorcount.MaxLength = 0;
+                colvarApierrorcount.AutoIncrement = false;
+                colvarApierrorcount.IsNullable = true;
+                colvarApierrorcount.IsPrimaryKey = false;
+                colvarApierrorcount.IsForeignKey = false;
+                colvarApierrorcount.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarApierrorcount);
                 
                 
                 BaseSchema = schema;
@@ -416,6 +464,20 @@ namespace Bitcoin_Notify_DB{
             set 
 		    {
 			    SetColumnValue("fee_static", value);
+            }
+        }
+	      
+        [XmlAttribute("Apicall")]
+        [Bindable(true)]
+        public string Apicall 
+	    {
+		    get
+		    {
+			    return GetColumnValue<string>("apicall");
+		    }
+            set 
+		    {
+			    SetColumnValue("apicall", value);
             }
         }
 	      
@@ -600,6 +662,48 @@ namespace Bitcoin_Notify_DB{
 			    SetColumnValue("Destination_Currency_Key", value);
             }
         }
+	      
+        [XmlAttribute("SourceCurrencyIsfiat")]
+        [Bindable(true)]
+        public bool? SourceCurrencyIsfiat 
+	    {
+		    get
+		    {
+			    return GetColumnValue<bool?>("Source_Currency_Isfiat");
+		    }
+            set 
+		    {
+			    SetColumnValue("Source_Currency_Isfiat", value);
+            }
+        }
+	      
+        [XmlAttribute("DestinationCurrencyIsfiat")]
+        [Bindable(true)]
+        public bool? DestinationCurrencyIsfiat 
+	    {
+		    get
+		    {
+			    return GetColumnValue<bool?>("Destination_Currency_Isfiat");
+		    }
+            set 
+		    {
+			    SetColumnValue("Destination_Currency_Isfiat", value);
+            }
+        }
+	      
+        [XmlAttribute("Apierrorcount")]
+        [Bindable(true)]
+        public int? Apierrorcount 
+	    {
+		    get
+		    {
+			    return GetColumnValue<int?>("apierrorcount");
+		    }
+            set 
+		    {
+			    SetColumnValue("apierrorcount", value);
+            }
+        }
 	    
 	    #endregion
     
@@ -619,6 +723,8 @@ namespace Bitcoin_Notify_DB{
             public static string FeePercentage = @"fee_percentage";
             
             public static string FeeStatic = @"fee_static";
+            
+            public static string Apicall = @"apicall";
             
             public static string Ratechanges = @"ratechanges";
             
@@ -645,6 +751,12 @@ namespace Bitcoin_Notify_DB{
             public static string SourceCurrencyKey = @"Source_Currency_Key";
             
             public static string DestinationCurrencyKey = @"Destination_Currency_Key";
+            
+            public static string SourceCurrencyIsfiat = @"Source_Currency_Isfiat";
+            
+            public static string DestinationCurrencyIsfiat = @"Destination_Currency_Isfiat";
+            
+            public static string Apierrorcount = @"apierrorcount";
             
 	    }
 	    #endregion

@@ -13,6 +13,7 @@ namespace Bitcoin_Notify.Models
         public MarketDifference marketdifference { get; set; }
         public DateTime lastupdate { get; set; }
 
+        public List<int> pathnodes { get; set; }
         public decimal volume { get; set; }
     }
 }

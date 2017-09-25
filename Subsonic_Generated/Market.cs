@@ -243,6 +243,19 @@ namespace Bitcoin_Notify_DB
 				colvarApierrorcount.ForeignKeyTableName = "";
 				schema.Columns.Add(colvarApierrorcount);
 				
+				TableSchema.TableColumn colvarApicall = new TableSchema.TableColumn(schema);
+				colvarApicall.ColumnName = "apicall";
+				colvarApicall.DataType = DbType.String;
+				colvarApicall.MaxLength = 10;
+				colvarApicall.AutoIncrement = false;
+				colvarApicall.IsNullable = true;
+				colvarApicall.IsPrimaryKey = false;
+				colvarApicall.IsForeignKey = false;
+				colvarApicall.IsReadOnly = false;
+				colvarApicall.DefaultSetting = @"";
+				colvarApicall.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarApicall);
+				
 				BaseSchema = schema;
 				//add this schema to the provider
 				//so we can query it later
@@ -324,6 +337,14 @@ namespace Bitcoin_Notify_DB
 			get { return GetColumnValue<int?>(Columns.Apierrorcount); }
 			set { SetColumnValue(Columns.Apierrorcount, value); }
 		}
+		  
+		[XmlAttribute("Apicall")]
+		[Bindable(true)]
+		public string Apicall 
+		{
+			get { return GetColumnValue<string>(Columns.Apicall); }
+			set { SetColumnValue(Columns.Apicall, value); }
+		}
 		
 		#endregion
 		
@@ -344,7 +365,7 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Inserts a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Insert(int varMarketKey,int varSource,int varDestination,bool varAutomatic,decimal? varFeePercentage,decimal? varFeeStatic,bool? varRatechanges,int? varExchangetime,int? varApierrorcount)
+		public static void Insert(int varMarketKey,int varSource,int varDestination,bool varAutomatic,decimal? varFeePercentage,decimal? varFeeStatic,bool? varRatechanges,int? varExchangetime,int? varApierrorcount,string varApicall)
 		{
 			Market item = new Market();
 			
@@ -366,6 +387,8 @@ namespace Bitcoin_Notify_DB
 			
 			item.Apierrorcount = varApierrorcount;
 			
+			item.Apicall = varApicall;
+			
 		
 			if (System.Web.HttpContext.Current != null)
 				item.Save(System.Web.HttpContext.Current.User.Identity.Name);
@@ -376,7 +399,7 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Updates a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Update(int varMarketKey,int varSource,int varDestination,bool varAutomatic,decimal? varFeePercentage,decimal? varFeeStatic,bool? varRatechanges,int? varExchangetime,int? varApierrorcount)
+		public static void Update(int varMarketKey,int varSource,int varDestination,bool varAutomatic,decimal? varFeePercentage,decimal? varFeeStatic,bool? varRatechanges,int? varExchangetime,int? varApierrorcount,string varApicall)
 		{
 			Market item = new Market();
 			
@@ -397,6 +420,8 @@ namespace Bitcoin_Notify_DB
 				item.Exchangetime = varExchangetime;
 			
 				item.Apierrorcount = varApierrorcount;
+			
+				item.Apicall = varApicall;
 			
 			item.IsNew = false;
 			if (System.Web.HttpContext.Current != null)
@@ -474,6 +499,13 @@ namespace Bitcoin_Notify_DB
         
         
         
+        public static TableSchema.TableColumn ApicallColumn
+        {
+            get { return Schema.Columns[9]; }
+        }
+        
+        
+        
         #endregion
 		#region Columns Struct
 		public struct Columns
@@ -487,6 +519,7 @@ namespace Bitcoin_Notify_DB
 			 public static string Ratechanges = @"ratechanges";
 			 public static string Exchangetime = @"exchangetime";
 			 public static string Apierrorcount = @"apierrorcount";
+			 public static string Apicall = @"apicall";
 						
 		}
 		#endregion

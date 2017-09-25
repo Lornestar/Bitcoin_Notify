@@ -80,7 +80,7 @@ namespace Bitcoin_Notify_DB
 	    /// Inserts a record, can be used with the Object Data Source
 	    /// </summary>
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
-	    public void Insert(int MarketKey,int Source,int Destination,bool Automatic,decimal? FeePercentage,decimal? FeeStatic,bool? Ratechanges,int? Exchangetime)
+	    public void Insert(int MarketKey,int Source,int Destination,bool Automatic,decimal? FeePercentage,decimal? FeeStatic,bool? Ratechanges,int? Exchangetime,int? Apierrorcount,string Apicall)
 	    {
 		    Market item = new Market();
 		    
@@ -100,6 +100,10 @@ namespace Bitcoin_Notify_DB
             
             item.Exchangetime = Exchangetime;
             
+            item.Apierrorcount = Apierrorcount;
+            
+            item.Apicall = Apicall;
+            
 	    
 		    item.Save(UserName);
 	    }
@@ -108,7 +112,7 @@ namespace Bitcoin_Notify_DB
 	    /// Updates a record, can be used with the Object Data Source
 	    /// </summary>
         [DataObjectMethod(DataObjectMethodType.Update, true)]
-	    public void Update(int MarketKey,int Source,int Destination,bool Automatic,decimal? FeePercentage,decimal? FeeStatic,bool? Ratechanges,int? Exchangetime)
+	    public void Update(int MarketKey,int Source,int Destination,bool Automatic,decimal? FeePercentage,decimal? FeeStatic,bool? Ratechanges,int? Exchangetime,int? Apierrorcount,string Apicall)
 	    {
 		    Market item = new Market();
 	        item.MarkOld();
@@ -129,6 +133,10 @@ namespace Bitcoin_Notify_DB
 			item.Ratechanges = Ratechanges;
 				
 			item.Exchangetime = Exchangetime;
+				
+			item.Apierrorcount = Apierrorcount;
+				
+			item.Apicall = Apicall;
 				
 	        item.Save(UserName);
 	    }

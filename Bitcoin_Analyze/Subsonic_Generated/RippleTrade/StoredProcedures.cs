@@ -16,6 +16,18 @@ namespace RippleTrade_DB{
     public partial class SPs{
         
         /// <summary>
+        /// Creates an object wrapper for the Delete_Currenttx Procedure
+        /// </summary>
+        public static StoredProcedure DeleteCurrenttx(int? marketkey)
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Delete_Currenttx", DataService.GetInstance("RippleTrade"), "dbo");
+        	
+            sp.Command.AddParameter("@market_key", marketkey, DbType.Int32, 0, 10);
+        	
+            return sp;
+        }
+        
+        /// <summary>
         /// Creates an object wrapper for the Delete_Markets_All Procedure
         /// </summary>
         public static StoredProcedure DeleteMarketsAll()
@@ -60,6 +72,30 @@ namespace RippleTrade_DB{
         }
         
         /// <summary>
+        /// Creates an object wrapper for the Update_API_Calls Procedure
+        /// </summary>
+        public static StoredProcedure UpdateApiCalls(int? apicallkey, int? txkey, string request, string response, string url, DateTime? dateoccured, int? apicallkeyreturn)
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Update_API_Calls", DataService.GetInstance("RippleTrade"), "dbo");
+        	
+            sp.Command.AddParameter("@api_call_key", apicallkey, DbType.Int32, 0, 10);
+        	
+            sp.Command.AddParameter("@tx_key", txkey, DbType.Int32, 0, 10);
+        	
+            sp.Command.AddParameter("@request", request, DbType.AnsiString, null, null);
+        	
+            sp.Command.AddParameter("@response", response, DbType.AnsiString, null, null);
+        	
+            sp.Command.AddParameter("@url", url, DbType.AnsiString, null, null);
+        	
+            sp.Command.AddParameter("@dateoccured", dateoccured, DbType.DateTime, null, null);
+        	
+            sp.Command.AddParameter("@api_call_key_return", apicallkeyreturn, DbType.Int32, 0, 10);
+        	
+            return sp;
+        }
+        
+        /// <summary>
         /// Creates an object wrapper for the Update_CurrencyCloud_Tokens Procedure
         /// </summary>
         public static StoredProcedure UpdateCurrencyCloudTokens(int? cctokenkey, string cctoken)
@@ -69,6 +105,18 @@ namespace RippleTrade_DB{
             sp.Command.AddParameter("@cctokenkey", cctokenkey, DbType.Int32, 0, 10);
         	
             sp.Command.AddParameter("@cctoken", cctoken, DbType.AnsiString, null, null);
+        	
+            return sp;
+        }
+        
+        /// <summary>
+        /// Creates an object wrapper for the Update_Currenttx Procedure
+        /// </summary>
+        public static StoredProcedure UpdateCurrenttx(int? marketkey)
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Update_Currenttx", DataService.GetInstance("RippleTrade"), "dbo");
+        	
+            sp.Command.AddParameter("@market_key", marketkey, DbType.Int32, 0, 10);
         	
             return sp;
         }
@@ -141,6 +189,32 @@ namespace RippleTrade_DB{
             sp.Command.AddParameter("@path_route_key", pathroutekey, DbType.Int32, 0, 10);
         	
             sp.Command.AddParameter("@path_key", pathkey, DbType.Int32, 0, 10);
+        	
+            sp.Command.AddParameter("@market_key", marketkey, DbType.Int32, 0, 10);
+        	
+            return sp;
+        }
+        
+        /// <summary>
+        /// Creates an object wrapper for the Update_Transactions Procedure
+        /// </summary>
+        public static StoredProcedure UpdateTransactions(int? marketkey, int? txkeyreturn)
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Update_Transactions", DataService.GetInstance("RippleTrade"), "dbo");
+        	
+            sp.Command.AddParameter("@market_key", marketkey, DbType.Int32, 0, 10);
+        	
+            sp.Command.AddParameter("@tx_key_return", txkeyreturn, DbType.Int32, 0, 10);
+        	
+            return sp;
+        }
+        
+        /// <summary>
+        /// Creates an object wrapper for the View_Currenttx Procedure
+        /// </summary>
+        public static StoredProcedure ViewCurrenttx(int? marketkey)
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("View_Currenttx", DataService.GetInstance("RippleTrade"), "dbo");
         	
             sp.Command.AddParameter("@market_key", marketkey, DbType.Int32, 0, 10);
         	

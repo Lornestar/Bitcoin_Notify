@@ -10,5 +10,6 @@ namespace Bitcoin_Notify.Models
         public int exchange_currency_key { get; set; }
         public int exchange_key { get; set; }
         public int currency { get; set; }
+        public Boolean isfiat { get; set; }
     }
 }

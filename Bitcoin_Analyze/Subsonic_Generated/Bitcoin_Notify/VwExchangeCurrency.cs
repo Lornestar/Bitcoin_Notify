@@ -72,7 +72,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarCurrencyName = new TableSchema.TableColumn(schema);
                 colvarCurrencyName.ColumnName = "currency_name";
                 colvarCurrencyName.DataType = DbType.AnsiString;
-                colvarCurrencyName.MaxLength = 3;
+                colvarCurrencyName.MaxLength = 10;
                 colvarCurrencyName.AutoIncrement = false;
                 colvarCurrencyName.IsNullable = true;
                 colvarCurrencyName.IsPrimaryKey = false;
@@ -92,6 +92,42 @@ namespace Bitcoin_Notify_DB{
                 colvarExchangeName.IsReadOnly = false;
                 
                 schema.Columns.Add(colvarExchangeName);
+                
+                TableSchema.TableColumn colvarCurrency = new TableSchema.TableColumn(schema);
+                colvarCurrency.ColumnName = "currency";
+                colvarCurrency.DataType = DbType.Int32;
+                colvarCurrency.MaxLength = 0;
+                colvarCurrency.AutoIncrement = false;
+                colvarCurrency.IsNullable = false;
+                colvarCurrency.IsPrimaryKey = false;
+                colvarCurrency.IsForeignKey = false;
+                colvarCurrency.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarCurrency);
+                
+                TableSchema.TableColumn colvarExchangeKey = new TableSchema.TableColumn(schema);
+                colvarExchangeKey.ColumnName = "exchange_key";
+                colvarExchangeKey.DataType = DbType.Int32;
+                colvarExchangeKey.MaxLength = 0;
+                colvarExchangeKey.AutoIncrement = false;
+                colvarExchangeKey.IsNullable = false;
+                colvarExchangeKey.IsPrimaryKey = false;
+                colvarExchangeKey.IsForeignKey = false;
+                colvarExchangeKey.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarExchangeKey);
+                
+                TableSchema.TableColumn colvarIsfiat = new TableSchema.TableColumn(schema);
+                colvarIsfiat.ColumnName = "isfiat";
+                colvarIsfiat.DataType = DbType.Boolean;
+                colvarIsfiat.MaxLength = 0;
+                colvarIsfiat.AutoIncrement = false;
+                colvarIsfiat.IsNullable = true;
+                colvarIsfiat.IsPrimaryKey = false;
+                colvarIsfiat.IsForeignKey = false;
+                colvarIsfiat.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarIsfiat);
                 
                 
                 BaseSchema = schema;
@@ -184,6 +220,48 @@ namespace Bitcoin_Notify_DB{
 			    SetColumnValue("exchange_name", value);
             }
         }
+	      
+        [XmlAttribute("Currency")]
+        [Bindable(true)]
+        public int Currency 
+	    {
+		    get
+		    {
+			    return GetColumnValue<int>("currency");
+		    }
+            set 
+		    {
+			    SetColumnValue("currency", value);
+            }
+        }
+	      
+        [XmlAttribute("ExchangeKey")]
+        [Bindable(true)]
+        public int ExchangeKey 
+	    {
+		    get
+		    {
+			    return GetColumnValue<int>("exchange_key");
+		    }
+            set 
+		    {
+			    SetColumnValue("exchange_key", value);
+            }
+        }
+	      
+        [XmlAttribute("Isfiat")]
+        [Bindable(true)]
+        public bool? Isfiat 
+	    {
+		    get
+		    {
+			    return GetColumnValue<bool?>("isfiat");
+		    }
+            set 
+		    {
+			    SetColumnValue("isfiat", value);
+            }
+        }
 	    
 	    #endregion
     
@@ -197,6 +275,12 @@ namespace Bitcoin_Notify_DB{
             public static string CurrencyName = @"currency_name";
             
             public static string ExchangeName = @"exchange_name";
+            
+            public static string Currency = @"currency";
+            
+            public static string ExchangeKey = @"exchange_key";
+            
+            public static string Isfiat = @"isfiat";
             
 	    }
 	    #endregion

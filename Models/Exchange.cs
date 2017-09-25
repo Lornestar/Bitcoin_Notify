@@ -12,5 +12,7 @@ namespace Bitcoin_Notify.Models
         public string exchange_shortname { get; set; }
         public decimal fee_percentage { get; set; }
         public decimal withdrawl_fee { get; set; }
+
+        public Boolean isstatic {get; set;}
     }
 }

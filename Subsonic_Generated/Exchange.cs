@@ -204,6 +204,19 @@ namespace Bitcoin_Notify_DB
 				colvarWithdrawlFee.ForeignKeyTableName = "";
 				schema.Columns.Add(colvarWithdrawlFee);
 				
+				TableSchema.TableColumn colvarIsstatic = new TableSchema.TableColumn(schema);
+				colvarIsstatic.ColumnName = "isstatic";
+				colvarIsstatic.DataType = DbType.Boolean;
+				colvarIsstatic.MaxLength = 0;
+				colvarIsstatic.AutoIncrement = false;
+				colvarIsstatic.IsNullable = true;
+				colvarIsstatic.IsPrimaryKey = false;
+				colvarIsstatic.IsForeignKey = false;
+				colvarIsstatic.IsReadOnly = false;
+				colvarIsstatic.DefaultSetting = @"";
+				colvarIsstatic.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarIsstatic);
+				
 				BaseSchema = schema;
 				//add this schema to the provider
 				//so we can query it later
@@ -261,6 +274,14 @@ namespace Bitcoin_Notify_DB
 			get { return GetColumnValue<decimal?>(Columns.WithdrawlFee); }
 			set { SetColumnValue(Columns.WithdrawlFee, value); }
 		}
+		  
+		[XmlAttribute("Isstatic")]
+		[Bindable(true)]
+		public bool? Isstatic 
+		{
+			get { return GetColumnValue<bool?>(Columns.Isstatic); }
+			set { SetColumnValue(Columns.Isstatic, value); }
+		}
 		
 		#endregion
 		
@@ -281,7 +302,7 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Inserts a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Insert(int varExchangeKey,string varExchangeName,string varExchangeShortname,bool? varOnlyalt,decimal? varFeePercentage,decimal? varWithdrawlFee)
+		public static void Insert(int varExchangeKey,string varExchangeName,string varExchangeShortname,bool? varOnlyalt,decimal? varFeePercentage,decimal? varWithdrawlFee,bool? varIsstatic)
 		{
 			Exchange item = new Exchange();
 			
@@ -297,6 +318,8 @@ namespace Bitcoin_Notify_DB
 			
 			item.WithdrawlFee = varWithdrawlFee;
 			
+			item.Isstatic = varIsstatic;
+			
 		
 			if (System.Web.HttpContext.Current != null)
 				item.Save(System.Web.HttpContext.Current.User.Identity.Name);
@@ -307,7 +330,7 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Updates a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Update(int varExchangeKey,string varExchangeName,string varExchangeShortname,bool? varOnlyalt,decimal? varFeePercentage,decimal? varWithdrawlFee)
+		public static void Update(int varExchangeKey,string varExchangeName,string varExchangeShortname,bool? varOnlyalt,decimal? varFeePercentage,decimal? varWithdrawlFee,bool? varIsstatic)
 		{
 			Exchange item = new Exchange();
 			
@@ -322,6 +345,8 @@ namespace Bitcoin_Notify_DB
 				item.FeePercentage = varFeePercentage;
 			
 				item.WithdrawlFee = varWithdrawlFee;
+			
+				item.Isstatic = varIsstatic;
 			
 			item.IsNew = false;
 			if (System.Web.HttpContext.Current != null)
@@ -378,6 +403,13 @@ namespace Bitcoin_Notify_DB
         
         
         
+        public static TableSchema.TableColumn IsstaticColumn
+        {
+            get { return Schema.Columns[6]; }
+        }
+        
+        
+        
         #endregion
 		#region Columns Struct
 		public struct Columns
@@ -388,6 +420,7 @@ namespace Bitcoin_Notify_DB
 			 public static string Onlyalt = @"onlyalt";
 			 public static string FeePercentage = @"fee_percentage";
 			 public static string WithdrawlFee = @"withdrawl_fee";
+			 public static string Isstatic = @"isstatic";
 						
 		}
 		#endregion

@@ -28,6 +28,8 @@ namespace Bitcoin_Background
         {
             sitetemp.Web_Request(baseurl + "/execute_update", null, 0, null, "");
             sitetemp.Web_Request(baseurl + "/execute_update_differences", null, 0, null, "");
+            //sitetemp.Web_Request("http://35.197.51.4/bitcoin_notify/service1.svc/execute_update", null, 0, null, "");
+            //sitetemp.Web_Request("http://35.197.51.4/bitcoin_notify/service1.svc/execute_update_differences", null, 0, null, "");
         }
     }
 }

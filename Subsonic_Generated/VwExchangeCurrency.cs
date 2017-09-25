@@ -72,7 +72,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarCurrencyName = new TableSchema.TableColumn(schema);
                 colvarCurrencyName.ColumnName = "currency_name";
                 colvarCurrencyName.DataType = DbType.AnsiString;
-                colvarCurrencyName.MaxLength = 4;
+                colvarCurrencyName.MaxLength = 10;
                 colvarCurrencyName.AutoIncrement = false;
                 colvarCurrencyName.IsNullable = true;
                 colvarCurrencyName.IsPrimaryKey = false;

@@ -178,6 +178,45 @@ namespace Bitcoin_Notify_DB
 				colvarOnlyalt.ForeignKeyTableName = "";
 				schema.Columns.Add(colvarOnlyalt);
 				
+				TableSchema.TableColumn colvarFeePercentage = new TableSchema.TableColumn(schema);
+				colvarFeePercentage.ColumnName = "fee_percentage";
+				colvarFeePercentage.DataType = DbType.Currency;
+				colvarFeePercentage.MaxLength = 0;
+				colvarFeePercentage.AutoIncrement = false;
+				colvarFeePercentage.IsNullable = true;
+				colvarFeePercentage.IsPrimaryKey = false;
+				colvarFeePercentage.IsForeignKey = false;
+				colvarFeePercentage.IsReadOnly = false;
+				colvarFeePercentage.DefaultSetting = @"";
+				colvarFeePercentage.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarFeePercentage);
+				
+				TableSchema.TableColumn colvarWithdrawlFee = new TableSchema.TableColumn(schema);
+				colvarWithdrawlFee.ColumnName = "withdrawl_fee";
+				colvarWithdrawlFee.DataType = DbType.Currency;
+				colvarWithdrawlFee.MaxLength = 0;
+				colvarWithdrawlFee.AutoIncrement = false;
+				colvarWithdrawlFee.IsNullable = true;
+				colvarWithdrawlFee.IsPrimaryKey = false;
+				colvarWithdrawlFee.IsForeignKey = false;
+				colvarWithdrawlFee.IsReadOnly = false;
+				colvarWithdrawlFee.DefaultSetting = @"";
+				colvarWithdrawlFee.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarWithdrawlFee);
+				
+				TableSchema.TableColumn colvarIsstatic = new TableSchema.TableColumn(schema);
+				colvarIsstatic.ColumnName = "isstatic";
+				colvarIsstatic.DataType = DbType.Boolean;
+				colvarIsstatic.MaxLength = 0;
+				colvarIsstatic.AutoIncrement = false;
+				colvarIsstatic.IsNullable = true;
+				colvarIsstatic.IsPrimaryKey = false;
+				colvarIsstatic.IsForeignKey = false;
+				colvarIsstatic.IsReadOnly = false;
+				colvarIsstatic.DefaultSetting = @"";
+				colvarIsstatic.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarIsstatic);
+				
 				BaseSchema = schema;
 				//add this schema to the provider
 				//so we can query it later
@@ -219,6 +258,30 @@ namespace Bitcoin_Notify_DB
 			get { return GetColumnValue<bool?>(Columns.Onlyalt); }
 			set { SetColumnValue(Columns.Onlyalt, value); }
 		}
+		  
+		[XmlAttribute("FeePercentage")]
+		[Bindable(true)]
+		public decimal? FeePercentage 
+		{
+			get { return GetColumnValue<decimal?>(Columns.FeePercentage); }
+			set { SetColumnValue(Columns.FeePercentage, value); }
+		}
+		  
+		[XmlAttribute("WithdrawlFee")]
+		[Bindable(true)]
+		public decimal? WithdrawlFee 
+		{
+			get { return GetColumnValue<decimal?>(Columns.WithdrawlFee); }
+			set { SetColumnValue(Columns.WithdrawlFee, value); }
+		}
+		  
+		[XmlAttribute("Isstatic")]
+		[Bindable(true)]
+		public bool? Isstatic 
+		{
+			get { return GetColumnValue<bool?>(Columns.Isstatic); }
+			set { SetColumnValue(Columns.Isstatic, value); }
+		}
 		
 		#endregion
 		
@@ -239,7 +302,7 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Inserts a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Insert(int varExchangeKey,string varExchangeName,string varExchangeShortname,bool? varOnlyalt)
+		public static void Insert(int varExchangeKey,string varExchangeName,string varExchangeShortname,bool? varOnlyalt,decimal? varFeePercentage,decimal? varWithdrawlFee,bool? varIsstatic)
 		{
 			Exchange item = new Exchange();
 			
@@ -251,6 +314,12 @@ namespace Bitcoin_Notify_DB
 			
 			item.Onlyalt = varOnlyalt;
 			
+			item.FeePercentage = varFeePercentage;
+			
+			item.WithdrawlFee = varWithdrawlFee;
+			
+			item.Isstatic = varIsstatic;
+			
 		
 			if (System.Web.HttpContext.Current != null)
 				item.Save(System.Web.HttpContext.Current.User.Identity.Name);
@@ -261,7 +330,7 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Updates a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Update(int varExchangeKey,string varExchangeName,string varExchangeShortname,bool? varOnlyalt)
+		public static void Update(int varExchangeKey,string varExchangeName,string varExchangeShortname,bool? varOnlyalt,decimal? varFeePercentage,decimal? varWithdrawlFee,bool? varIsstatic)
 		{
 			Exchange item = new Exchange();
 			
@@ -272,6 +341,12 @@ namespace Bitcoin_Notify_DB
 				item.ExchangeShortname = varExchangeShortname;
 			
 				item.Onlyalt = varOnlyalt;
+			
+				item.FeePercentage = varFeePercentage;
+			
+				item.WithdrawlFee = varWithdrawlFee;
+			
+				item.Isstatic = varIsstatic;
 			
 			item.IsNew = false;
 			if (System.Web.HttpContext.Current != null)
@@ -314,6 +389,27 @@ namespace Bitcoin_Notify_DB
         
         
         
+        public static TableSchema.TableColumn FeePercentageColumn
+        {
+            get { return Schema.Columns[4]; }
+        }
+        
+        
+        
+        public static TableSchema.TableColumn WithdrawlFeeColumn
+        {
+            get { return Schema.Columns[5]; }
+        }
+        
+        
+        
+        public static TableSchema.TableColumn IsstaticColumn
+        {
+            get { return Schema.Columns[6]; }
+        }
+        
+        
+        
         #endregion
 		#region Columns Struct
 		public struct Columns
@@ -322,6 +418,9 @@ namespace Bitcoin_Notify_DB
 			 public static string ExchangeName = @"exchange_name";
 			 public static string ExchangeShortname = @"exchange_shortname";
 			 public static string Onlyalt = @"onlyalt";
+			 public static string FeePercentage = @"fee_percentage";
+			 public static string WithdrawlFee = @"withdrawl_fee";
+			 public static string Isstatic = @"isstatic";
 						
 		}
 		#endregion
