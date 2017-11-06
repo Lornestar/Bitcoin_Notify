@@ -49,6 +49,11 @@ namespace Bitcoin_Notify
             keyColumns3[0] = dtnodes.Columns["exchange_currency_key"];
             dtnodes.PrimaryKey = keyColumns3;
 
+            DataTable dtmarketorderbooks = Bitcoin_Notify_DB.SPs.ViewMarketOrderbooksAll().GetDataSet().Tables[0];
+            DataColumn[] keyColumns4 = new DataColumn[1];
+            keyColumns4[0] = dtnodes.Columns["market_key"];
+            dtmarketorderbooks.PrimaryKey = keyColumns4;
+
             Hashtable hsnodes = new Hashtable();
             foreach (DataRow dr in dtnodes.Rows)
             {
@@ -79,7 +84,7 @@ namespace Bitcoin_Notify
             //df.Update_Paths(dtmarketdata, dtmarkets, dtnodes);
 
             //automated paths
-            df.Update_Paths_All(dtmarketdata, dtmarkets, hsnodes, dtnodes, lshsnodesbyexchange);
+            df.Update_Paths_All(dtmarketdata, dtmarkets, hsnodes, dtnodes, lshsnodesbyexchange, dtmarketorderbooks);
             hsnumberofthreads.Clear();
 
             return "";

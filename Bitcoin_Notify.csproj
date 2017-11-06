@@ -103,11 +103,13 @@
     <Compile Include="APIs\Market_Updates.cs" />
     <Compile Include="APIs\thesendgrid.cs" />
     <Compile Include="Differences.cs" />
+    <Compile Include="Models\Depth.cs" />
     <Compile Include="Models\Exchange.cs" />
     <Compile Include="Models\Market.cs" />
     <Compile Include="Models\MarketDifference.cs" />
     <Compile Include="Models\MarketNode.cs" />
     <Compile Include="Models\Path.cs" />
+    <Compile Include="Models\PathDepthInfo.cs" />
     <Compile Include="Models\Value.cs" />
     <Compile Include="Models\Wallet.cs" />
     <Compile Include="Notifications.cs" />

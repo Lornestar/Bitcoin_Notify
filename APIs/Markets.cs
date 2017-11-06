@@ -419,11 +419,12 @@ namespace Bitcoin_Notify.APIs
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
                 string apicall = dr["apicall"].ToString();
+                int currentdestinationcurrencykey = Convert.ToInt32(dr["destination_currency_key"]);
 
                 
                 if (apicall.Length > 0)
                 {
-                    string strresponse = sitetemp.Web_Request("https://api.gdax.com/products/" + apicall + "/book?level=25", null);
+                    string strresponse = sitetemp.Web_Request("https://api.gdax.com/products/" + apicall + "/book?level=2", null);
 
                     try
                     {
@@ -442,15 +443,19 @@ namespace Bitcoin_Notify.APIs
                         decimal buyingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
+                        //find multiplier to USD -- Basically destination currency to USD exchange rate in that exchange
 
+                        decimal multipliertoUSD = Get_MultipliertoUSD(currentdestinationcurrencykey, currentexchangekey);
                         Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkey).Execute();
                         Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkeyopposite).Execute();
                         //insert orderbook into db - max 8% diff
+                        int counter = 1;
                         foreach (JArray item in bids.Children())
                         {
                             o4 = item;
                             decimal currentprice = decimal.Parse((string)o4[0]);
                             decimal currentvolume = decimal.Parse((string)o4[1]);
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
 
                             decimal currentdifference = (selling / currentprice) - 1;
                             if (currentdifference > orderbookdepthpercentage)
@@ -458,14 +463,17 @@ namespace Bitcoin_Notify.APIs
                                 continue;
                             }
 
-                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume).Execute();
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
                         }
 
+                        counter = 1;
                         foreach (JArray item in asks.Children())
                         {
                             o4 = item;
                             decimal currentprice = 1 / decimal.Parse((string)o4[0]);
                             decimal currentvolume = decimal.Parse((string)o4[1]);
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
 
                             decimal currentdifference = (buying / currentprice) - 1;
                             if (currentdifference > orderbookdepthpercentage)
@@ -473,7 +481,8 @@ namespace Bitcoin_Notify.APIs
                                 continue;
                             }
 
-                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume).Execute();
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkeyopposite, false, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
                         }
 
 
@@ -488,6 +497,36 @@ namespace Bitcoin_Notify.APIs
             }
         }
 
+        private decimal Get_Volume_inUSD( decimal currentvolume, decimal multipliertousd)
+        {
+            decimal volume_inUSD = 0;
+
+            volume_inUSD = currentvolume * multipliertousd;
+
+            return volume_inUSD;
+        }
+
+        private decimal Get_MultipliertoUSD(int destination_currency_key, int exchange_key)
+        {
+            if (exchange_key == 2)
+            {
+                exchange_key = 3;
+            }
+            decimal multipliertoUSD = 1;
+
+            //Currencykey = 5 -->> USD
+            if (destination_currency_key != 5)
+            {
+                DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewMarketByExchangeSourceDestination(exchange_key, exchange_key, destination_currency_key, 5).GetDataSet().Tables[0];
+                int marketkey = Convert.ToInt32(dttemp.Rows[0]["market_key"]);
+
+                dttemp = Bitcoin_Notify_DB.SPs.ViewMarketDataSpecific(marketkey).GetDataSet().Tables[0];
+                multipliertoUSD = Convert.ToDecimal(dttemp.Rows[0]["price"]);
+            }
+            
+
+            return multipliertoUSD;
+        }
 
         public void UpdateGemini(int currentexchangekey)
         {
@@ -499,6 +538,7 @@ namespace Bitcoin_Notify.APIs
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
                 string apicall = dr["apicall"].ToString();
+                int currentdestinationcurrencykey = Convert.ToInt32(dr["destination_currency_key"]);
 
 
                 if (apicall.Length > 0)
@@ -523,6 +563,45 @@ namespace Bitcoin_Notify.APIs
                         decimal buyingvolume = decimal.Parse((string)o4["amount"]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
+                        decimal multipliertoUSD = Get_MultipliertoUSD(currentdestinationcurrencykey, currentexchangekey);
+
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkey).Execute();
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkeyopposite).Execute();
+
+                        int counter = 1;
+                        //insert orderbook into db - max 8% diff
+                        foreach (JObject item in bids.Children())
+                        {
+                            decimal currentprice = decimal.Parse((string)item["price"]);
+                            decimal currentvolume = decimal.Parse((string)item["amount"]);
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                            decimal currentdifference = (selling / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+                            
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
+                        }
+
+                        counter = 1;
+                        foreach (JObject item in asks.Children())
+                        {
+                            decimal currentprice = 1 / decimal.Parse((string)item["price"]);
+                            decimal currentvolume = decimal.Parse((string)item["amount"]);
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                            decimal currentdifference = (buying / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkeyopposite, false, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
+                        }
                     }
                     catch
                     {
@@ -548,6 +627,12 @@ namespace Bitcoin_Notify.APIs
                     int marketkey = Convert.ToInt32(dr["market_key"]);
                     int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
                     string apicall = dr["apicall"].ToString();
+                    int currentsourcecurrencykey = Convert.ToInt32(dr["source_currency_key"]);
+                    int currentdestinationcurrencykey = Convert.ToInt32(dr["destination_currency_key"]);
+
+                    if (marketkey == 80)
+                    {
+                    }
 
                     //figure out multiplier to convert volume to USD
                     decimal currentmultiplier = 0;
@@ -580,8 +665,8 @@ namespace Bitcoin_Notify.APIs
                     }
 
                     if (apicall.Length > 0)
-                    {                        
-
+                    {
+                        
                         string strresponse = sitetemp.Web_Request("https://api.kraken.com/0/public/Ticker?pair=" + currentsourcecurrency + currentdestinationcurrency, null);
 
                         try
@@ -622,6 +707,63 @@ namespace Bitcoin_Notify.APIs
                                 decimal buying = 1 / decimal.Parse((string)o4[0]);
                                 decimal buyingvolume = decimal.Parse((string)o5[1]) * currentmultiplier;
                                 Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
+
+                                strresponse = sitetemp.Web_Request("https://api.kraken.com/0/public/Depth?count=100&pair=" + currentsourcecurrency + currentdestinationcurrency, null);
+
+                                JObject oOrderbook = JObject.Parse(strresponse);
+                                JObject o2Orderbook = (JObject)oOrderbook["result"];
+                                JObject o3Orderbook = (JObject)o2Orderbook[firstone + currentsourcecurrency + secondone + currentdestinationcurrency];
+
+                                if (o3Orderbook == null)
+                                {
+                                    o3Orderbook = (JObject)o2Orderbook[currentsourcecurrency + currentdestinationcurrency];
+                                }
+
+                                JArray asksOrderbook = (JArray)o3Orderbook["asks"];
+                                JArray bidsOrderbook = (JArray)o3Orderbook["bids"];
+
+                                decimal multipliertoUSD = Get_MultipliertoUSD(currentsourcecurrencykey, currentexchangekey);
+
+                                Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkey).Execute();
+                                Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkeyopposite).Execute();
+
+                                
+                                int counter = 1;
+                                //insert orderbook into db - max 8% diff
+                                foreach (JArray item in bidsOrderbook.Children())
+                                {                                    
+                                    decimal currentprice = decimal.Parse((string)item[0]);
+                                    decimal currentvolume = decimal.Parse((string)item[1]);
+                                    decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                                    decimal currentdifference = (selling / currentprice) - 1;
+                                    if (currentdifference > orderbookdepthpercentage)
+                                    {
+                                        continue;
+                                    }
+
+                                    Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                                    counter++;
+                                }
+
+                                counter = 1;
+                                foreach (JArray item in asksOrderbook.Children())
+                                {
+                                    o4 = item;
+                                    decimal currentprice = 1 / decimal.Parse((string)o4[0]);
+                                    decimal currentvolume = decimal.Parse((string)o4[1]);
+                                    decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                                    decimal currentdifference = (buying / currentprice) - 1;
+                                    if (currentdifference > orderbookdepthpercentage)
+                                    {
+                                        continue;
+                                    }
+
+                                    Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkeyopposite, false, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                                    counter++;
+                                }
+
                             }
                             else
                             {
@@ -834,6 +976,8 @@ namespace Bitcoin_Notify.APIs
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
                 string apicall = dr["apicall"].ToString();
+                int currentsourcecurrencykey = Convert.ToInt32(dr["source_currency_key"]);
+                int currentdestinationcurrencykey = Convert.ToInt32(dr["destination_currency_key"]);
 
                 if (apicall.Length > 0)
                 {
@@ -857,6 +1001,47 @@ namespace Bitcoin_Notify.APIs
                         decimal buyingvolume = decimal.Parse((string)o4[1]);
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
+                        decimal multipliertoUSD = Get_MultipliertoUSD(currentsourcecurrencykey, currentexchangekey);
+
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkey).Execute();
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkeyopposite).Execute();
+
+                        int counter = 1;
+                        //insert orderbook into db - max 8% diff
+                        foreach (JArray item in bids.Children())
+                        {
+                            o4 = item;
+                            decimal currentprice = decimal.Parse((string)o4[0]);
+                            decimal currentvolume = decimal.Parse((string)o4[1]);
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                            decimal currentdifference = (selling / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
+                        }
+
+                        counter = 1;
+                        foreach (JArray item in asks.Children())
+                        {
+                            o4 = item;
+                            decimal currentprice = 1 / decimal.Parse((string)o4[0]);
+                            decimal currentvolume = decimal.Parse((string)o4[1]);
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                            decimal currentdifference = (buying / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkeyopposite, false, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
+                        }
                     }
                     catch
                     {
@@ -987,6 +1172,8 @@ namespace Bitcoin_Notify.APIs
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
                 string apicall = dr["apicall"].ToString();
+                int currentsourcecurrencykey = Convert.ToInt32(dr["source_currency_key"]);
+                int currentdestinationcurrencykey = Convert.ToInt32(dr["destination_currency_key"]);
 
                 if (currentsourcecurrency.ToUpper() == "USD")
                 {
@@ -1020,6 +1207,48 @@ namespace Bitcoin_Notify.APIs
                         decimal buyingvolume = (decimal)o4[1];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
 
+                        decimal multipliertoUSD = Get_MultipliertoUSD(currentsourcecurrencykey, currentexchangekey);
+
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkey).Execute();
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkeyopposite).Execute();
+
+                        int counter = 1;
+                        //insert orderbook into db - max 8% diff
+                        foreach (JArray item in bids.Children())
+                        {
+                            o4 = item;
+                            decimal currentprice = 1 / decimal.Parse((string)o4[0]);
+                            decimal currentvolume = decimal.Parse((string)o4[1]);
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                            decimal currentdifference = (selling / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
+                        }
+
+                        counter = 1;
+                        foreach (JArray item in asks.Children())
+                        {
+                            o4 = item;
+                            decimal currentprice =  decimal.Parse((string)o4[0]);
+                            decimal currentvolume = decimal.Parse((string)o4[1]);
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                            decimal currentdifference = (buying / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkeyopposite, false, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
+                        }
+
                     }
                     catch
                     {
@@ -1041,6 +1270,7 @@ namespace Bitcoin_Notify.APIs
                 int marketkey = Convert.ToInt32(dr["market_key"]);
                 int marketkeyopposite = Convert.ToInt32(dr["market_key_opposite"]);
                 string apicall = dr["apicall"].ToString();
+                int currentdestinationcurrencykey = Convert.ToInt32(dr["destination_currency_key"]);
 
                 if (currentsourcecurrency.ToUpper() == "USD")
                 {
@@ -1075,6 +1305,47 @@ namespace Bitcoin_Notify.APIs
                         decimal buying = 1/ (decimal)o4["Rate"];
                         decimal buyingvolume = (decimal)o4["Quantity"];
                         Bitcoin_Notify_DB.SPs.UpdateMarketData(buying, buyingvolume, marketkeyopposite).Execute();
+
+                        decimal multipliertoUSD = Get_MultipliertoUSD(currentdestinationcurrencykey, currentexchangekey);
+
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkey).Execute();
+                        Bitcoin_Notify_DB.SPs.DeleteMarketOrderbooks(marketkeyopposite).Execute();
+
+                        int counter = 1;
+                        //insert orderbook into db - max 8% diff
+                        foreach (JObject item in bids.Children())
+                        {
+                            decimal currentprice = (decimal)item["Rate"];
+                            decimal currentvolume = (decimal)item["Quantity"];
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                            decimal currentdifference = (selling / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, true, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
+                        }
+
+                        counter = 1;
+
+                        foreach (JObject item in asks.Children())
+                        {
+                            decimal currentprice = 1 / (decimal)item["Rate"];
+                            decimal currentvolume = (decimal)item["Quantity"];
+                            decimal currentvolumeUSD = Get_Volume_inUSD(currentvolume, multipliertoUSD);
+
+                            decimal currentdifference = (buying / currentprice) - 1;
+                            if (currentdifference > orderbookdepthpercentage)
+                            {
+                                continue;
+                            }
+
+                            Bitcoin_Notify_DB.SPs.UpdateMarketOrderbooks(marketkey, false, currentprice, currentvolume, currentvolumeUSD, multipliertoUSD, counter).Execute();
+                            counter++;
+                        }
 
                     }
                     catch

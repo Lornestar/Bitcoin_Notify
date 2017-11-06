@@ -13,4 +13,5 @@ Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\Bitcoin_Analyze\bin\Bitcoin_A
 Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\Bitcoin_Analyze\bin\Bitcoin_Analyze.pdb
 Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.dll
 Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.pdb
+Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.csproj.CoreCompileInputs.cache
 Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\Bitcoin_Analyze\obj\Debug\Bitcoin_Analyze.csprojResolveAssemblyReference.cache

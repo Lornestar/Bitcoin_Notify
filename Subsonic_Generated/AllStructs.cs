@@ -26,6 +26,8 @@ namespace Bitcoin_Notify_DB
         
 		public static readonly string CurrencyCloudToken = @"CurrencyCloud_Token";
         
+		public static readonly string ErrorX = @"Errors";
+        
 		public static readonly string ExchangeCurrency = @"Exchange_Currency";
         
 		public static readonly string ExchangeRate = @"Exchange_Rates";
@@ -45,6 +47,8 @@ namespace Bitcoin_Notify_DB
 		public static readonly string PathRoute = @"Path_Routes";
         
 		public static readonly string Path = @"Paths";
+        
+		public static readonly string Setting = @"Settings";
         
 		public static readonly string UpdateRecurring = @"Update_Recurring";
         
@@ -71,6 +75,11 @@ namespace Bitcoin_Notify_DB
 		public static TableSchema.Table CurrencyCloudToken
 		{
             get { return DataService.GetSchema("CurrencyCloud_Token", "Bitcoin_Notify"); }
+		}
+        
+		public static TableSchema.Table ErrorX
+		{
+            get { return DataService.GetSchema("Errors", "Bitcoin_Notify"); }
 		}
         
 		public static TableSchema.Table ExchangeCurrency
@@ -121,6 +130,11 @@ namespace Bitcoin_Notify_DB
 		public static TableSchema.Table Path
 		{
             get { return DataService.GetSchema("Paths", "Bitcoin_Notify"); }
+		}
+        
+		public static TableSchema.Table Setting
+		{
+            get { return DataService.GetSchema("Settings", "Bitcoin_Notify"); }
 		}
         
 		public static TableSchema.Table UpdateRecurring

@@ -20,36 +20,205 @@ namespace Bitcoin_Notify
         Site sitetemp = new Site();
         APIs.Firebase fb = new APIs.Firebase();
         Hashtable hsnumberofthreads = new Hashtable();
-        public delegate Models.Path AsyncMethodCaller(List<int> path, DataTable dtmarketdata, DataTable dtmarkets, DataTable dtnodes, Models.Path currentpath);
+        public delegate Models.Path AsyncMethodCaller(List<int> path, DataTable dtmarketdata, DataTable dtmarkets, DataTable dtnodes, Models.Path currentpath, DataTable dtmarketorderbooks);
         List<Models.Path> allthepathsglobal = new List<Models.Path>();
+        decimal percentagethreashold = 0;
+        
         
 
-        private decimal GetMinVolumeAlongPath(List<int> path, DataTable dtmarketdata, DataTable dtmarkets, DataTable dtnodes)
+        private PathDepthInfo GetMinVolumeAlongPath(List<int> path, DataTable dtmarketdata, DataTable dtmarkets, DataTable dtnodes, DataTable dtmarketorderbooks, Boolean startingmaker)
         {
+            PathDepthInfo pathdepthinfo = new PathDepthInfo();
+            decimal minvolumeforalldepths = 0;
+            decimal minprofitforalldepths = 0;
             decimal minvolume = 0;
 
+            //set first buy data
+            int startingmarket = path[0];
+            int startingnode = Convert.ToInt32(dtmarkets.Rows.Find(startingmarket)["source"]);
+
+            Boolean donecalculatingdepth = false;
+            int counter = 0;
+            Hashtable hscumulativedepths = new Hashtable();
             foreach (int marketkey in path)
             {
+                Depth dp = new Depth();
+                dp.orderbookdepth = 1;
+                dp.marketkey = marketkey;
+                DataRow[] result = dtmarketorderbooks.Select("market_key = " + marketkey.ToString() + " AND depth = 1");
                 try
                 {
-                    Market currentmarket = GetMarketInfo(dtmarkets, dtnodes, dtmarketdata, marketkey);
+                    dp.currentdepthamountusd = Convert.ToDecimal(result[0]["volumeusd"]);
+                    
+                }
+                catch {
+                    dp.currentdepthamountusd = 0;
+                }
+                hscumulativedepths.Add(counter, dp);
+                counter++;
+            }
 
-                    if (((minvolume == 0) && (currentmarket.volume > 0)) || ((minvolume > currentmarket.volume) && (currentmarket.volume > 0)))
+            int lastpathtomove = 0;
+            while (donecalculatingdepth==false)
+            {
+                decimal currentlowestpoint = 0;
+                int pathnumbertomove = 0;
+                
+
+                foreach (DictionaryEntry entry in hscumulativedepths)
+                {
+                    Depth dp = (Depth)entry.Value;
+                    decimal amounttoconsider = dp.cumulativedepthusd;
+                    if (dp.orderbookdepth == 1)
                     {
-                        minvolume = currentmarket.volume;
+                        amounttoconsider = dp.currentdepthamountusd;
                     }
+                    else if (dp.orderbookdepth > 1)
+                    {
+                        amounttoconsider += dp.currentdepthamountusd;
+                    }
+                    
+                    if ((currentlowestpoint == 0) || ((currentlowestpoint > amounttoconsider) && (amounttoconsider > 0)))
+                    {                        
+                        pathnumbertomove = (int)entry.Key;
+                        currentlowestpoint = amounttoconsider;
+                    }
+                }
+
+                //now check if this change in depth in one of the markets pushes us past profitability
+                Value startingamount = new Value();
+                startingamount.amount = 1;
+                startingamount.currency = Convert.ToInt32(dtnodes.Rows.Find(startingnode)["currency"]);
+
+                Value currentamount = new Value();
+                currentamount = startingamount;
+                currentamount.isvoid = false;
+                //Check at this depth is it profitable?
+                foreach (DictionaryEntry entry in hscumulativedepths)
+                {
+                    Depth dp = (Depth)entry.Value;
+                    Market currentmarket = GetMarketInfo(dtmarkets, dtnodes, dtmarketdata, dp.marketkey, dtmarketorderbooks, dp.orderbookdepth);
+                    currentamount = CalculateTransaction(currentamount, currentmarket, false);
+                }
+
+                if (currentamount.amount - 1 > percentagethreashold)
+                {
+                    Depth currentdepthtoupdate = (Depth)hscumulativedepths[pathnumbertomove];
+                    try
+                    {
+                        DataRow[] result = dtmarketorderbooks.Select("market_key = " + currentdepthtoupdate.marketkey.ToString() + " AND depth = " + currentdepthtoupdate.orderbookdepth);
+                        currentdepthtoupdate.orderbookdepth += 1;
+                        currentdepthtoupdate.cumulativedepthusd += currentdepthtoupdate.currentdepthamountusd;
+                        currentdepthtoupdate.currentdepthamountusd = Convert.ToDecimal(result[0]["volumeusd"]);
+                        currentdepthtoupdate.cumulativeprofitUSD += ((currentamount.amount - 1) * currentdepthtoupdate.currentdepthamountusd);
+                        lastpathtomove = pathnumbertomove;
+                    }
+                    catch(Exception e)
+                    {
+                        //it's not profitable anymore, so roll back last market you added depth to, and calculate the cumulative depth amount in usd                        
+                        minvolumeforalldepths = currentdepthtoupdate.cumulativedepthusd;
+                        minprofitforalldepths = currentdepthtoupdate.cumulativeprofitUSD;
+
+                        // Get stack trace for the exception with source file information
+                        var st = new System.Diagnostics.StackTrace(e, true);
+                        // Get the top stack frame
+                        var frame = st.GetFrame(0);
+                        // Get the line number from the stack frame
+                        var line = frame.GetFileLineNumber();
+
+                        Bitcoin_Notify_DB.SPs.UpdateError("Market Key: " + currentdepthtoupdate.marketkey.ToString() + "/ Depth: " + currentdepthtoupdate.orderbookdepth + "/ " + e.Message, line, frame.GetFileName()).Execute();
+
+                        break;
+                    }
+                    
+                }
+                else
+                {
+                    //it's not profitable anymore, so roll back last market you added depth to, and calculate the cumulative depth amount in usd
+                    Depth currentdepthtoupdate = (Depth)hscumulativedepths[pathnumbertomove];
+                    minvolumeforalldepths = currentdepthtoupdate.cumulativedepthusd;
+                    minprofitforalldepths = currentdepthtoupdate.cumulativeprofitUSD;
+                    break;
+                }
+
+                /*
+                //now this dp is the lowest depth, so add another depth layer to this market
+                Depth currentdepthtoupdate = (Depth)hscumulativedepths[pathnumbertomove];
+                currentdepthtoupdate.orderbookdepth += 1;
+                decimal nextdepthlevelamount = 0;
+                DataRow[] result = dtmarketorderbooks.Select("market_key = " + currentdepthtoupdate.marketkey.ToString() + " AND depth = " + currentdepthtoupdate.orderbookdepth);
+                try
+                {
+                    nextdepthlevelamount = Convert.ToDecimal(result[0]["volumeusd"]);
                 }
                 catch
                 {
-
+                    minvolumeforalldepths = currentlowestpoint.cumulativedepthusd;
+                    minprofitforalldepths = currentlowestpoint.cumulativeprofitUSD;
+                    break;
                 }
-                
+                currentdepthtoupdate.cumulativedepthusd += nextdepthlevelamount;
+
+                //calculating profit
+                decimal profitatthisdepth = (currentamount.amount * nextdepthlevelamount) - nextdepthlevelamount;
+                currentdepthtoupdate.cumulativeprofitUSD += profitatthisdepth;
+                */
+
+
+                //if it's above 1, then rinse & repeat
+
             }
 
-            return minvolume;
+            pathdepthinfo.minvolumeforalldepthsUSD = minvolumeforalldepths;
+            pathdepthinfo.profitforalldepthsUSD = minprofitforalldepths;
+
+            return pathdepthinfo;
         }
 
-        private Models.Path GetArbitrageRate(List<int> path, DataTable dtmarketdata, DataTable dtmarkets, DataTable dtnodes, Models.Path currentpath)
+        /*
+        private decimal GetArbitrageDepth(List<int> path, DataTable dtmarketdata, DataTable dtmarkets, DataTable dtnodes, Models.Path currentpath, DataTable dtmarketorderbooks)
+        {
+            List<int> pathwithdynamicmarkets = new List<int>();
+            //filter out markets that have unlimited volume and are not the same currency
+            foreach(int marketkey in path)
+            {
+                Market currentmarket = GetMarketInfo(dtmarkets, dtnodes, dtmarketdata, marketkey,);
+                Boolean isvalidmarket = true;
+                if (currentmarket.source.currency == currentmarket.destination.currency)
+                {
+                    isvalidmarket = false;
+                }
+                if ((currentmarket.source.isfiat) && (currentmarket.destination.isfiat))
+                {
+                    isvalidmarket = false;
+                }
+
+                if (isvalidmarket)
+                {
+                    pathwithdynamicmarkets.Add(marketkey);
+                }
+            }
+
+            decimal depthamountusd = 0;
+            Boolean differenceabovezero = true;
+
+            while(differenceabovezero)
+            {
+                Value startingamount = new Value();
+                startingamount.amount = 1;
+                startingamount.currency = 5; //USD Starting currency
+
+
+
+            }
+
+            
+
+            return depthamountusd;
+        }*/
+
+
+            private Models.Path GetArbitrageRate(List<int> path, DataTable dtmarketdata, DataTable dtmarkets, DataTable dtnodes, Models.Path currentpath, DataTable dtmarketorderbooks)
         {
             MarketDifference arbitragerate = new MarketDifference();
             arbitragerate.isvoid = false;
@@ -57,7 +226,7 @@ namespace Bitcoin_Notify
             //set first buy data
             int startingmarket = path[0];                        
             int startingnode = Convert.ToInt32(dtmarkets.Rows.Find(startingmarket)["source"]);
-
+            
             Value startingamount = new Value();
             startingamount.amount = 1;            
             startingamount.currency = Convert.ToInt32(dtnodes.Rows.Find(startingnode)["currency"]);
@@ -66,17 +235,37 @@ namespace Bitcoin_Notify
             currentamount = startingamount;
             currentamount.isvoid = false;
 
+            int startingmarketopposite = Convert.ToInt32(dtmarkets.Rows.Find(startingmarket)["market_key_opposite"]);            
+            Value currentamount_asmaker = new Value();
+            currentamount_asmaker = new Value();
+            currentamount_asmaker.amount = 1;
+            currentamount_asmaker.currency = startingamount.currency;
+            currentamount_asmaker.isvoid = false;
+
+            int market_key_firstmarket_opposite = 0;
+
             //calculate percentage rate
-            
+            int counter = 0;
             foreach (int marketkey in path)
             {
                 try
-                { if (marketkey == 40)
-                {
-
-                }
-                    Market currentmarket = GetMarketInfo(dtmarkets, dtnodes, dtmarketdata, marketkey);
+                { 
+                    Market currentmarket = GetMarketInfo(dtmarkets, dtnodes, dtmarketdata, marketkey, dtmarketorderbooks, 1);
                     currentamount = CalculateTransaction(currentamount, currentmarket, false);
+
+                    if (counter == 0)
+                    {
+                        //first market, calculate marketopposite
+                        Market currentmarket_opposite = GetMarketInfo(dtmarkets, dtnodes, dtmarketdata, startingmarketopposite, dtmarketorderbooks, 1);
+                        currentmarket_opposite.price = 1 / currentmarket_opposite.price;
+                        currentamount_asmaker = CalculateTransaction(currentamount_asmaker, currentmarket_opposite, false);
+                        market_key_firstmarket_opposite = currentmarket_opposite.market_key;
+                        //currentamount_asmaker.amount = 1 / currentamount_asmaker.amount ;
+                    }
+                    else
+                    {
+                        currentamount_asmaker = CalculateTransaction(currentamount_asmaker, currentmarket, false);
+                    }
 
                     //calculate static fees
                     if (currentmarket.fee_static > 0)
@@ -94,10 +283,19 @@ namespace Bitcoin_Notify
 
                     //calculate time
                     arbitragerate.time += currentmarket.exchangetime;
-                }
-                catch
-                {
 
+                    counter++;
+                }
+                catch (Exception e)
+                {
+                    // Get stack trace for the exception with source file information
+                    var st = new System.Diagnostics.StackTrace(e, true);
+                    // Get the top stack frame
+                    var frame = st.GetFrame(0);
+                    // Get the line number from the stack frame
+                    var line = frame.GetFileLineNumber();
+
+                    Bitcoin_Notify_DB.SPs.UpdateError("Path Key: " + currentpath.pathkey + "/ " + e.Message, line, frame.GetFileName()).Execute();
                 }
             }
             
@@ -105,6 +303,36 @@ namespace Bitcoin_Notify
 
             arbitragerate.percentage = (currentamount.amount - 1) * 100;
             arbitragerate.isvoid = currentamount.isvoid;
+            arbitragerate.percentage_asmaker = (currentamount_asmaker.amount - 1) * 100;
+
+            
+            if (arbitragerate.percentage > percentagethreashold)
+            {
+                try
+                {
+                    PathDepthInfo tempdepthinfo = GetMinVolumeAlongPath(path, dtmarketdata, dtmarkets, dtnodes, dtmarketorderbooks, false);
+                    arbitragerate.depthusd = tempdepthinfo.minvolumeforalldepthsUSD;
+                    arbitragerate.depthprofit = tempdepthinfo.profitforalldepthsUSD;
+                }
+                catch (Exception e)
+                {
+                    // Get stack trace for the exception with source file information
+                    var st = new System.Diagnostics.StackTrace(e, true);
+                    // Get the top stack frame
+                    var frame = st.GetFrame(0);
+                    // Get the line number from the stack frame
+                    var line = frame.GetFileLineNumber();
+
+                    Bitcoin_Notify_DB.SPs.UpdateError("Path Key: " +  currentpath.pathkey + "/ " + e.Message, line, frame.GetFileName()).Execute();
+                }
+            }
+            if (arbitragerate.percentage_asmaker > percentagethreashold)
+            {
+                PathDepthInfo tempdepthinfo = GetMinVolumeAlongPath(path, dtmarketdata, dtmarkets, dtnodes, dtmarketorderbooks, true);
+                arbitragerate.depthusd_asmaker = tempdepthinfo.minvolumeforalldepthsUSD;
+                arbitragerate.depthprofit_asmaker = tempdepthinfo.profitforalldepthsUSD;
+            }
+            
 
             currentpath.marketdifference = arbitragerate;
 
@@ -161,7 +389,7 @@ namespace Bitcoin_Notify
             return outputamount;
         }
 
-        public Market GetMarketInfo(DataTable dtmarkets, DataTable dtnodes, DataTable dtmarketdata, int marketkey)
+        public Market GetMarketInfo(DataTable dtmarkets, DataTable dtnodes, DataTable dtmarketdata, int marketkey, DataTable dtmarketorderbooks, int depth)
         {
             Market tempmarket = new Market();
             tempmarket.market_key = marketkey;
@@ -188,7 +416,24 @@ namespace Bitcoin_Notify
             
             if (tempmarket.ratechanges)
             {
-                tempmarket.price = Convert.ToDecimal(dtmarketdata.Rows.Find(marketkey)["price"]);
+                if (depth ==1)
+                {
+                    tempmarket.price = Convert.ToDecimal(dtmarketdata.Rows.Find(marketkey)["price"]);
+                }
+                else
+                {
+                    //not at surface price
+                    DataRow[] result = dtmarketorderbooks.Select("market_key = " + marketkey.ToString() + " AND depth = " + depth.ToString());
+                    try
+                    {
+                        tempmarket.price = Convert.ToDecimal(result[0]["price"]);
+                    }
+                    catch
+                    {
+                        //there was no result
+                        tempmarket.price = 1;
+                    }
+                }
             }
             else
             {
@@ -198,11 +443,21 @@ namespace Bitcoin_Notify
             tempmarket.volume = 0;
             if (tempmarket.ratechanges)
             {
-                if (dtmarketdata.Rows.Find(marketkey)["volume"] != DBNull.Value)
-                {
-                    tempmarket.volume = Convert.ToDecimal(dtmarketdata.Rows.Find(marketkey)["volume"]);
-                }
+                
+                    DataRow[] result = dtmarketorderbooks.Select("market_key = " + marketkey.ToString() + " AND depth = " + depth.ToString());
+                    try
+                    {
+                        tempmarket.volume = Convert.ToDecimal(result[0]["volumeusd"]);
+                    }
+                    catch
+                    {
+                        //there was no result
+                        tempmarket.volume = 0;
+                    }
+                
+                
             }
+            
             
                 
 
@@ -473,7 +728,7 @@ namespace Bitcoin_Notify
 
                                                     allthepaths = CreateThePath(dtmarkets, dtnodes, allthepaths, currentpath);
                                                 }
-                                                else//it's coinbase, eg btc --> eth, node 4 is digital currency, node 5 has to be same currency
+                                               /* else//it's coinbase, eg btc --> eth, node 4 is digital currency, node 5 has to be same currency
                                                 {
                                                     //now look for node #4
                                                     foreach (DictionaryEntry entry5 in hsnodes)
@@ -515,7 +770,7 @@ namespace Bitcoin_Notify
 
                                                         }
                                                     }
-                                                }
+                                                }*/
 
                                             }
 
@@ -545,12 +800,15 @@ namespace Bitcoin_Notify
 
             Models.Path currentpath = caller.EndInvoke(result);
 
-            Bitcoin_Notify_DB.SPs.UpdateArbResults(currentpath.pathkey, currentpath.path[0], currentpath.path[currentpath.path.Count - 1], currentpath.marketdifference.percentage, currentpath.marketdifference.time, currentpath.label).Execute();
+            Bitcoin_Notify_DB.SPs.UpdateArbResults(currentpath.pathkey, currentpath.path[0], currentpath.path[currentpath.path.Count - 1], currentpath.marketdifference.percentage, currentpath.marketdifference.time, currentpath.label, currentpath.pathkey * -1, currentpath.marketdifference.percentage_asmaker, currentpath.path.Count, currentpath.marketdifference.depthusd, currentpath.marketdifference.depthusd_asmaker, currentpath.marketdifference.depthprofit, currentpath.marketdifference.depthprofit_asmaker).Execute();
             
         }
         
-        public List<Models.Path> Update_Paths_All(DataTable dtmarketdata, DataTable dtmarkets, Hashtable hsnodes, DataTable dtnodes, List<Hashtable> lshsnodesbyexchange)
+        public List<Models.Path> Update_Paths_All(DataTable dtmarketdata, DataTable dtmarkets, Hashtable hsnodes, DataTable dtnodes, List<Hashtable> lshsnodesbyexchange, DataTable dtmarketorderbooks)
         {
+            DataTable dtsettings = Bitcoin_Notify_DB.SPs.ViewSettings().GetDataSet().Tables[0];
+            percentagethreashold = (decimal)dtsettings.Rows[0]["percentage_threashold"];
+
             List<Models.Path> allthepaths = new List<Models.Path>();
             Models.Path currentpath = ResetPath();
 
@@ -582,13 +840,17 @@ namespace Bitcoin_Notify
             
             foreach (var thecurrentpath in allthepaths)
             {
-                
+
 
                 //Seek_Paths_From_Node1(node1, dtmarketdata, dtmarkets, hsnodes, dtnodes, lshsnodesbyexchange);
-                
-                AsyncMethodCaller caller = new AsyncMethodCaller(GetArbitrageRate);
-                IAsyncResult result = caller.BeginInvoke(thecurrentpath.path, dtmarketdata, dtmarkets, dtnodes, thecurrentpath, new AsyncCallback(CallbackMethodArbitrageRate), null);
-                hsnumberofthreads.Add(thecurrentpath.pathkey, result);
+
+                //if (thecurrentpath.pathkey == 11749)
+                //{
+                    AsyncMethodCaller caller = new AsyncMethodCaller(GetArbitrageRate);
+                    IAsyncResult result = caller.BeginInvoke(thecurrentpath.path, dtmarketdata, dtmarkets, dtnodes, thecurrentpath, dtmarketorderbooks, new AsyncCallback(CallbackMethodArbitrageRate), null);
+                    hsnumberofthreads.Add(thecurrentpath.pathkey, result);
+                //}
+                    
 
                 
 

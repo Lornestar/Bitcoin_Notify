@@ -7,5 +7,5 @@ Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\bin\Bitcoin_Notify.dll
 Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\bin\Bitcoin_Notify.pdb
 Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.dll
 Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.pdb
-Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.csprojResolveAssemblyReference.cache
 Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.csproj.CoreCompileInputs.cache
+Z:\Documents\Bitcoin\Bitcoin_Notify\Bitcoin_Notify\obj\Debug\Bitcoin_Notify.csprojResolveAssemblyReference.cache

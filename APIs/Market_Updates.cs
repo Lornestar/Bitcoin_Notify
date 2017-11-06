@@ -81,6 +81,9 @@ namespace Bitcoin_Notify.APIs
 
         protected void Update_Kraken_Markets(int exchangekey)
         {
+            DataTable dtkrakeninfo = Bitcoin_Notify_DB.SPs.ViewExchangesBykey(exchangekey).GetDataSet().Tables[0];
+            decimal kraken_fee_percentage = Convert.ToDecimal(dtkrakeninfo.Rows[0]["fee_percentage"]);
+
             //first update currencies
             DataTable dttemp = Bitcoin_Notify_DB.SPs.ViewCurrenciesAll().GetDataSet().Tables[0];
 
@@ -167,7 +170,7 @@ namespace Bitcoin_Notify.APIs
                     }
                     else
                     {
-                        Insert_New_Market(exchangekey, sourcecurrency, destinationcurrency, decimal.Parse("0.0026"), thebase + quote);
+                        Insert_New_Market(exchangekey, sourcecurrency, destinationcurrency, kraken_fee_percentage, thebase + quote);
                     }
 
 

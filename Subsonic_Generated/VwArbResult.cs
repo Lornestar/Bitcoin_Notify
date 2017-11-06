@@ -72,7 +72,7 @@ namespace Bitcoin_Notify_DB{
                 TableSchema.TableColumn colvarLabel = new TableSchema.TableColumn(schema);
                 colvarLabel.ColumnName = "label";
                 colvarLabel.DataType = DbType.String;
-                colvarLabel.MaxLength = 50;
+                colvarLabel.MaxLength = 100;
                 colvarLabel.AutoIncrement = false;
                 colvarLabel.IsNullable = true;
                 colvarLabel.IsPrimaryKey = false;
@@ -188,6 +188,54 @@ namespace Bitcoin_Notify_DB{
                 colvarEndNodeExchange.IsReadOnly = false;
                 
                 schema.Columns.Add(colvarEndNodeExchange);
+                
+                TableSchema.TableColumn colvarStartingmaker = new TableSchema.TableColumn(schema);
+                colvarStartingmaker.ColumnName = "startingmaker";
+                colvarStartingmaker.DataType = DbType.Boolean;
+                colvarStartingmaker.MaxLength = 0;
+                colvarStartingmaker.AutoIncrement = false;
+                colvarStartingmaker.IsNullable = true;
+                colvarStartingmaker.IsPrimaryKey = false;
+                colvarStartingmaker.IsForeignKey = false;
+                colvarStartingmaker.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarStartingmaker);
+                
+                TableSchema.TableColumn colvarNumberofnodes = new TableSchema.TableColumn(schema);
+                colvarNumberofnodes.ColumnName = "numberofnodes";
+                colvarNumberofnodes.DataType = DbType.Int32;
+                colvarNumberofnodes.MaxLength = 0;
+                colvarNumberofnodes.AutoIncrement = false;
+                colvarNumberofnodes.IsNullable = true;
+                colvarNumberofnodes.IsPrimaryKey = false;
+                colvarNumberofnodes.IsForeignKey = false;
+                colvarNumberofnodes.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarNumberofnodes);
+                
+                TableSchema.TableColumn colvarVolume = new TableSchema.TableColumn(schema);
+                colvarVolume.ColumnName = "volume";
+                colvarVolume.DataType = DbType.Currency;
+                colvarVolume.MaxLength = 0;
+                colvarVolume.AutoIncrement = false;
+                colvarVolume.IsNullable = true;
+                colvarVolume.IsPrimaryKey = false;
+                colvarVolume.IsForeignKey = false;
+                colvarVolume.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarVolume);
+                
+                TableSchema.TableColumn colvarProfit = new TableSchema.TableColumn(schema);
+                colvarProfit.ColumnName = "profit";
+                colvarProfit.DataType = DbType.Currency;
+                colvarProfit.MaxLength = 0;
+                colvarProfit.AutoIncrement = false;
+                colvarProfit.IsNullable = true;
+                colvarProfit.IsPrimaryKey = false;
+                colvarProfit.IsForeignKey = false;
+                colvarProfit.IsReadOnly = false;
+                
+                schema.Columns.Add(colvarProfit);
                 
                 
                 BaseSchema = schema;
@@ -392,6 +440,62 @@ namespace Bitcoin_Notify_DB{
 			    SetColumnValue("end_node_exchange", value);
             }
         }
+	      
+        [XmlAttribute("Startingmaker")]
+        [Bindable(true)]
+        public bool? Startingmaker 
+	    {
+		    get
+		    {
+			    return GetColumnValue<bool?>("startingmaker");
+		    }
+            set 
+		    {
+			    SetColumnValue("startingmaker", value);
+            }
+        }
+	      
+        [XmlAttribute("Numberofnodes")]
+        [Bindable(true)]
+        public int? Numberofnodes 
+	    {
+		    get
+		    {
+			    return GetColumnValue<int?>("numberofnodes");
+		    }
+            set 
+		    {
+			    SetColumnValue("numberofnodes", value);
+            }
+        }
+	      
+        [XmlAttribute("Volume")]
+        [Bindable(true)]
+        public decimal? Volume 
+	    {
+		    get
+		    {
+			    return GetColumnValue<decimal?>("volume");
+		    }
+            set 
+		    {
+			    SetColumnValue("volume", value);
+            }
+        }
+	      
+        [XmlAttribute("Profit")]
+        [Bindable(true)]
+        public decimal? Profit 
+	    {
+		    get
+		    {
+			    return GetColumnValue<decimal?>("profit");
+		    }
+            set 
+		    {
+			    SetColumnValue("profit", value);
+            }
+        }
 	    
 	    #endregion
     
@@ -421,6 +525,14 @@ namespace Bitcoin_Notify_DB{
             public static string EndNodeCurrency = @"end_node_currency";
             
             public static string EndNodeExchange = @"end_node_exchange";
+            
+            public static string Startingmaker = @"startingmaker";
+            
+            public static string Numberofnodes = @"numberofnodes";
+            
+            public static string Volume = @"volume";
+            
+            public static string Profit = @"profit";
             
 	    }
 	    #endregion

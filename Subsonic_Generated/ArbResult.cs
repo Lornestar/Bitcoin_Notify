@@ -217,6 +217,58 @@ namespace Bitcoin_Notify_DB
 				colvarLabel.ForeignKeyTableName = "";
 				schema.Columns.Add(colvarLabel);
 				
+				TableSchema.TableColumn colvarStartingmaker = new TableSchema.TableColumn(schema);
+				colvarStartingmaker.ColumnName = "startingmaker";
+				colvarStartingmaker.DataType = DbType.Boolean;
+				colvarStartingmaker.MaxLength = 0;
+				colvarStartingmaker.AutoIncrement = false;
+				colvarStartingmaker.IsNullable = true;
+				colvarStartingmaker.IsPrimaryKey = false;
+				colvarStartingmaker.IsForeignKey = false;
+				colvarStartingmaker.IsReadOnly = false;
+				colvarStartingmaker.DefaultSetting = @"";
+				colvarStartingmaker.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarStartingmaker);
+				
+				TableSchema.TableColumn colvarNumberofnodes = new TableSchema.TableColumn(schema);
+				colvarNumberofnodes.ColumnName = "numberofnodes";
+				colvarNumberofnodes.DataType = DbType.Int32;
+				colvarNumberofnodes.MaxLength = 0;
+				colvarNumberofnodes.AutoIncrement = false;
+				colvarNumberofnodes.IsNullable = true;
+				colvarNumberofnodes.IsPrimaryKey = false;
+				colvarNumberofnodes.IsForeignKey = false;
+				colvarNumberofnodes.IsReadOnly = false;
+				colvarNumberofnodes.DefaultSetting = @"";
+				colvarNumberofnodes.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarNumberofnodes);
+				
+				TableSchema.TableColumn colvarVolume = new TableSchema.TableColumn(schema);
+				colvarVolume.ColumnName = "volume";
+				colvarVolume.DataType = DbType.Currency;
+				colvarVolume.MaxLength = 0;
+				colvarVolume.AutoIncrement = false;
+				colvarVolume.IsNullable = true;
+				colvarVolume.IsPrimaryKey = false;
+				colvarVolume.IsForeignKey = false;
+				colvarVolume.IsReadOnly = false;
+				colvarVolume.DefaultSetting = @"";
+				colvarVolume.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarVolume);
+				
+				TableSchema.TableColumn colvarProfit = new TableSchema.TableColumn(schema);
+				colvarProfit.ColumnName = "profit";
+				colvarProfit.DataType = DbType.Currency;
+				colvarProfit.MaxLength = 0;
+				colvarProfit.AutoIncrement = false;
+				colvarProfit.IsNullable = true;
+				colvarProfit.IsPrimaryKey = false;
+				colvarProfit.IsForeignKey = false;
+				colvarProfit.IsReadOnly = false;
+				colvarProfit.DefaultSetting = @"";
+				colvarProfit.ForeignKeyTableName = "";
+				schema.Columns.Add(colvarProfit);
+				
 				BaseSchema = schema;
 				//add this schema to the provider
 				//so we can query it later
@@ -282,6 +334,38 @@ namespace Bitcoin_Notify_DB
 			get { return GetColumnValue<string>(Columns.Label); }
 			set { SetColumnValue(Columns.Label, value); }
 		}
+		  
+		[XmlAttribute("Startingmaker")]
+		[Bindable(true)]
+		public bool? Startingmaker 
+		{
+			get { return GetColumnValue<bool?>(Columns.Startingmaker); }
+			set { SetColumnValue(Columns.Startingmaker, value); }
+		}
+		  
+		[XmlAttribute("Numberofnodes")]
+		[Bindable(true)]
+		public int? Numberofnodes 
+		{
+			get { return GetColumnValue<int?>(Columns.Numberofnodes); }
+			set { SetColumnValue(Columns.Numberofnodes, value); }
+		}
+		  
+		[XmlAttribute("Volume")]
+		[Bindable(true)]
+		public decimal? Volume 
+		{
+			get { return GetColumnValue<decimal?>(Columns.Volume); }
+			set { SetColumnValue(Columns.Volume, value); }
+		}
+		  
+		[XmlAttribute("Profit")]
+		[Bindable(true)]
+		public decimal? Profit 
+		{
+			get { return GetColumnValue<decimal?>(Columns.Profit); }
+			set { SetColumnValue(Columns.Profit, value); }
+		}
 		
 		#endregion
 		
@@ -302,7 +386,7 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Inserts a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Insert(int varArbResultsKey,int varStartingNode,int varEndNode,decimal? varPercentage,DateTime? varLastChanged,int? varTriptime,string varLabel)
+		public static void Insert(int varArbResultsKey,int varStartingNode,int varEndNode,decimal? varPercentage,DateTime? varLastChanged,int? varTriptime,string varLabel,bool? varStartingmaker,int? varNumberofnodes,decimal? varVolume,decimal? varProfit)
 		{
 			ArbResult item = new ArbResult();
 			
@@ -320,6 +404,14 @@ namespace Bitcoin_Notify_DB
 			
 			item.Label = varLabel;
 			
+			item.Startingmaker = varStartingmaker;
+			
+			item.Numberofnodes = varNumberofnodes;
+			
+			item.Volume = varVolume;
+			
+			item.Profit = varProfit;
+			
 		
 			if (System.Web.HttpContext.Current != null)
 				item.Save(System.Web.HttpContext.Current.User.Identity.Name);
@@ -330,7 +422,7 @@ namespace Bitcoin_Notify_DB
 		/// <summary>
 		/// Updates a record, can be used with the Object Data Source
 		/// </summary>
-		public static void Update(int varArbResultsKey,int varStartingNode,int varEndNode,decimal? varPercentage,DateTime? varLastChanged,int? varTriptime,string varLabel)
+		public static void Update(int varArbResultsKey,int varStartingNode,int varEndNode,decimal? varPercentage,DateTime? varLastChanged,int? varTriptime,string varLabel,bool? varStartingmaker,int? varNumberofnodes,decimal? varVolume,decimal? varProfit)
 		{
 			ArbResult item = new ArbResult();
 			
@@ -347,6 +439,14 @@ namespace Bitcoin_Notify_DB
 				item.Triptime = varTriptime;
 			
 				item.Label = varLabel;
+			
+				item.Startingmaker = varStartingmaker;
+			
+				item.Numberofnodes = varNumberofnodes;
+			
+				item.Volume = varVolume;
+			
+				item.Profit = varProfit;
 			
 			item.IsNew = false;
 			if (System.Web.HttpContext.Current != null)
@@ -410,6 +510,34 @@ namespace Bitcoin_Notify_DB
         
         
         
+        public static TableSchema.TableColumn StartingmakerColumn
+        {
+            get { return Schema.Columns[7]; }
+        }
+        
+        
+        
+        public static TableSchema.TableColumn NumberofnodesColumn
+        {
+            get { return Schema.Columns[8]; }
+        }
+        
+        
+        
+        public static TableSchema.TableColumn VolumeColumn
+        {
+            get { return Schema.Columns[9]; }
+        }
+        
+        
+        
+        public static TableSchema.TableColumn ProfitColumn
+        {
+            get { return Schema.Columns[10]; }
+        }
+        
+        
+        
         #endregion
 		#region Columns Struct
 		public struct Columns
@@ -421,6 +549,10 @@ namespace Bitcoin_Notify_DB
 			 public static string LastChanged = @"last_changed";
 			 public static string Triptime = @"triptime";
 			 public static string Label = @"label";
+			 public static string Startingmaker = @"startingmaker";
+			 public static string Numberofnodes = @"numberofnodes";
+			 public static string Volume = @"volume";
+			 public static string Profit = @"profit";
 						
 		}
 		#endregion

@@ -18,5 +18,7 @@ namespace Bitcoin_Notify.Models
         public int exchangetime { get; set; } //time takes to transfer the funds
 
         public decimal volume { get; set; }
+        public int currentdepth { get; set; }
+        
     }
 }

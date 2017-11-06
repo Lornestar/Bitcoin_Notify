@@ -80,7 +80,7 @@ namespace Bitcoin_Notify_DB
 	    /// Inserts a record, can be used with the Object Data Source
 	    /// </summary>
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
-	    public void Insert(int ArbResultsKey,int StartingNode,int EndNode,decimal? Percentage,DateTime? LastChanged,int? Triptime,string Label)
+	    public void Insert(int ArbResultsKey,int StartingNode,int EndNode,decimal? Percentage,DateTime? LastChanged,int? Triptime,string Label,bool? Startingmaker,int? Numberofnodes,decimal? Volume,decimal? Profit)
 	    {
 		    ArbResult item = new ArbResult();
 		    
@@ -98,6 +98,14 @@ namespace Bitcoin_Notify_DB
             
             item.Label = Label;
             
+            item.Startingmaker = Startingmaker;
+            
+            item.Numberofnodes = Numberofnodes;
+            
+            item.Volume = Volume;
+            
+            item.Profit = Profit;
+            
 	    
 		    item.Save(UserName);
 	    }
@@ -106,7 +114,7 @@ namespace Bitcoin_Notify_DB
 	    /// Updates a record, can be used with the Object Data Source
 	    /// </summary>
         [DataObjectMethod(DataObjectMethodType.Update, true)]
-	    public void Update(int ArbResultsKey,int StartingNode,int EndNode,decimal? Percentage,DateTime? LastChanged,int? Triptime,string Label)
+	    public void Update(int ArbResultsKey,int StartingNode,int EndNode,decimal? Percentage,DateTime? LastChanged,int? Triptime,string Label,bool? Startingmaker,int? Numberofnodes,decimal? Volume,decimal? Profit)
 	    {
 		    ArbResult item = new ArbResult();
 	        item.MarkOld();
@@ -125,6 +133,14 @@ namespace Bitcoin_Notify_DB
 			item.Triptime = Triptime;
 				
 			item.Label = Label;
+				
+			item.Startingmaker = Startingmaker;
+				
+			item.Numberofnodes = Numberofnodes;
+				
+			item.Volume = Volume;
+				
+			item.Profit = Profit;
 				
 	        item.Save(UserName);
 	    }

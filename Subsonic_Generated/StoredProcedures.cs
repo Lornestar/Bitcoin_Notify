@@ -62,6 +62,16 @@ namespace Bitcoin_Notify_DB{
         }
         
         /// <summary>
+        /// Creates an object wrapper for the Market_Orderbooks_All Procedure
+        /// </summary>
+        public static StoredProcedure MarketOrderbooksAll()
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Market_Orderbooks_All", DataService.GetInstance("Bitcoin_Notify"), "");
+        	
+            return sp;
+        }
+        
+        /// <summary>
         /// Creates an object wrapper for the Procedure Procedure
         /// </summary>
         public static StoredProcedure Procedure(int? param1, int? param2)
@@ -78,7 +88,7 @@ namespace Bitcoin_Notify_DB{
         /// <summary>
         /// Creates an object wrapper for the Update_Arb_Results Procedure
         /// </summary>
-        public static StoredProcedure UpdateArbResults(int? arbresultskey, int? startingmarket, int? endmarket, decimal? percentage, int? triptime, string label)
+        public static StoredProcedure UpdateArbResults(int? arbresultskey, int? startingmarket, int? endmarket, decimal? percentage, int? triptime, string label, int? arbresultsasmakerkey, decimal? percentageasmaker, int? numberofnodes, decimal? volume, decimal? volumeasmaker, decimal? profit, decimal? profitasmaker)
         {
             SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Update_Arb_Results", DataService.GetInstance("Bitcoin_Notify"), "dbo");
         	
@@ -93,6 +103,20 @@ namespace Bitcoin_Notify_DB{
             sp.Command.AddParameter("@triptime", triptime, DbType.Int32, 0, 10);
         	
             sp.Command.AddParameter("@label", label, DbType.String, null, null);
+        	
+            sp.Command.AddParameter("@arb_results_asmakerkey", arbresultsasmakerkey, DbType.Int32, 0, 10);
+        	
+            sp.Command.AddParameter("@percentage_asmaker", percentageasmaker, DbType.Decimal, 4, 18);
+        	
+            sp.Command.AddParameter("@numberofnodes", numberofnodes, DbType.Int32, 0, 10);
+        	
+            sp.Command.AddParameter("@volume", volume, DbType.Currency, 4, 19);
+        	
+            sp.Command.AddParameter("@volume_asmaker", volumeasmaker, DbType.Currency, 4, 19);
+        	
+            sp.Command.AddParameter("@profit", profit, DbType.Currency, 4, 19);
+        	
+            sp.Command.AddParameter("@profit_asmaker", profitasmaker, DbType.Currency, 4, 19);
         	
             return sp;
         }
@@ -159,6 +183,22 @@ namespace Bitcoin_Notify_DB{
             sp.Command.AddParameter("@cctokenkey", cctokenkey, DbType.Int32, 0, 10);
         	
             sp.Command.AddParameter("@cctoken", cctoken, DbType.AnsiString, null, null);
+        	
+            return sp;
+        }
+        
+        /// <summary>
+        /// Creates an object wrapper for the Update_Error Procedure
+        /// </summary>
+        public static StoredProcedure UpdateError(string errormessage, int? linenumber, string filename)
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Update_Error", DataService.GetInstance("Bitcoin_Notify"), "dbo");
+        	
+            sp.Command.AddParameter("@error_message", errormessage, DbType.String, null, null);
+        	
+            sp.Command.AddParameter("@line_number", linenumber, DbType.Int32, 0, 10);
+        	
+            sp.Command.AddParameter("@filename", filename, DbType.String, null, null);
         	
             return sp;
         }
@@ -236,7 +276,7 @@ namespace Bitcoin_Notify_DB{
         /// <summary>
         /// Creates an object wrapper for the Update_Market_Orderbooks Procedure
         /// </summary>
-        public static StoredProcedure UpdateMarketOrderbooks(int? marketkey, bool? isbid, decimal? price, decimal? volume)
+        public static StoredProcedure UpdateMarketOrderbooks(int? marketkey, bool? isbid, decimal? price, decimal? volume, decimal? volumeusd, decimal? usdmultiplier, int? depth)
         {
             SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Update_Market_Orderbooks", DataService.GetInstance("Bitcoin_Notify"), "dbo");
         	
@@ -247,6 +287,12 @@ namespace Bitcoin_Notify_DB{
             sp.Command.AddParameter("@price", price, DbType.Decimal, 8, 18);
         	
             sp.Command.AddParameter("@volume", volume, DbType.Decimal, 8, 18);
+        	
+            sp.Command.AddParameter("@volumeusd", volumeusd, DbType.Currency, 4, 19);
+        	
+            sp.Command.AddParameter("@usdmultiplier", usdmultiplier, DbType.Decimal, 8, 18);
+        	
+            sp.Command.AddParameter("@depth", depth, DbType.Int32, 0, 10);
         	
             return sp;
         }
@@ -307,6 +353,18 @@ namespace Bitcoin_Notify_DB{
             sp.Command.AddParameter("@path_key", pathkey, DbType.Int32, 0, 10);
         	
             sp.Command.AddParameter("@market_key", marketkey, DbType.Int32, 0, 10);
+        	
+            return sp;
+        }
+        
+        /// <summary>
+        /// Creates an object wrapper for the Update_Percentage_Threashold Procedure
+        /// </summary>
+        public static StoredProcedure UpdatePercentageThreashold(decimal? percentagethreashold)
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("Update_Percentage_Threashold", DataService.GetInstance("Bitcoin_Notify"), "dbo");
+        	
+            sp.Command.AddParameter("@percentage_threashold", percentagethreashold, DbType.Decimal, 4, 18);
         	
             return sp;
         }
@@ -434,6 +492,18 @@ namespace Bitcoin_Notify_DB{
         }
         
         /// <summary>
+        /// Creates an object wrapper for the View_Exchanges_bykey Procedure
+        /// </summary>
+        public static StoredProcedure ViewExchangesBykey(int? exchangekey)
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("View_Exchanges_bykey", DataService.GetInstance("Bitcoin_Notify"), "dbo");
+        	
+            sp.Command.AddParameter("@exchangekey", exchangekey, DbType.Int32, 0, 10);
+        	
+            return sp;
+        }
+        
+        /// <summary>
         /// Creates an object wrapper for the View_Exchanges_OnlyAlt_All Procedure
         /// </summary>
         public static StoredProcedure ViewExchangesOnlyAltAll()
@@ -489,6 +559,16 @@ namespace Bitcoin_Notify_DB{
             SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("View_Market_Data_Specific", DataService.GetInstance("Bitcoin_Notify"), "dbo");
         	
             sp.Command.AddParameter("@market_key", marketkey, DbType.Int32, 0, 10);
+        	
+            return sp;
+        }
+        
+        /// <summary>
+        /// Creates an object wrapper for the View_Market_Orderbooks_All Procedure
+        /// </summary>
+        public static StoredProcedure ViewMarketOrderbooksAll()
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("View_Market_Orderbooks_All", DataService.GetInstance("Bitcoin_Notify"), "");
         	
             return sp;
         }
@@ -595,6 +675,16 @@ namespace Bitcoin_Notify_DB{
         public static StoredProcedure ViewPathsAll()
         {
             SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("View_Paths_All", DataService.GetInstance("Bitcoin_Notify"), "");
+        	
+            return sp;
+        }
+        
+        /// <summary>
+        /// Creates an object wrapper for the View_Settings Procedure
+        /// </summary>
+        public static StoredProcedure ViewSettings()
+        {
+            SubSonic.StoredProcedure sp = new SubSonic.StoredProcedure("View_Settings", DataService.GetInstance("Bitcoin_Notify"), "");
         	
             return sp;
         }

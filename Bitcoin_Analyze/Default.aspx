@@ -121,6 +121,12 @@
                             </telerik:GridBoundColumn>
                             <telerik:GridBoundColumn DataField="percentage" HeaderText="Percentage" UniqueName="percentage" SortExpression="percentage" CurrentFilterFunction=Contains FilterDelay=1000>
                             </telerik:GridBoundColumn>
+                            <telerik:GridBoundColumn DataField="volume" HeaderText="Depth USD" UniqueName="volume" SortExpression="volume" CurrentFilterFunction=Contains FilterDelay=1000>
+                            </telerik:GridBoundColumn>
+                            <telerik:GridBoundColumn DataField="startingmaker" HeaderText="Maker Start" UniqueName="startingmaker" SortExpression="startingmaker" CurrentFilterFunction="NoFilter" FilterDelay=1000>
+                            </telerik:GridBoundColumn>
+                            <telerik:GridBoundColumn DataField="profit" HeaderText="Profit USD" UniqueName="profit" SortExpression="profit" CurrentFilterFunction="NoFilter" FilterDelay=1000 Visible="true">
+                            </telerik:GridBoundColumn>
                             <telerik:GridBoundColumn DataField="last_changed" HeaderText="Last Updated" UniqueName="last_changed" SortExpression="last_changed" >
                             </telerik:GridBoundColumn>                            
                             

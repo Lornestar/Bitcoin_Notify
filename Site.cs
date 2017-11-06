@@ -108,15 +108,19 @@ namespace Bitcoin_Notify
             
                 string strcurrencycodes = currency1 + currency2;
 
-                //string strresponse = Web_Request("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + strcurrencycodes + "%22)&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=", null, 0, null,"");
-                string url = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + strcurrencycodes + "%22)&env=store://datatables.org/alltableswithkeys&format=json";
-                string strresponse = Web_Request(url, null);
+            //string strresponse = Web_Request("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + strcurrencycodes + "%22)&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=", null, 0, null,"");
+            //string url = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22" + strcurrencycodes + "%22)&env=store://datatables.org/alltableswithkeys&format=json";
+            /* http://api.fixer.io/latest?symbols=USD,GBP */
+
+
+            string url = "http://api.fixer.io/latest?base=" + currency1 + "&symbols=" + currency2;
+
+            string strresponse = Web_Request(url, null);
 
                 JObject o = JObject.Parse(strresponse);
-                JObject o2 = (JObject)o["query"];
-                JObject o3 = (JObject)o2["results"];
-                JObject o4 = (JObject)o3["rate"];
-                rate = Convert.ToDecimal((string)o4["Rate"]);
+                JObject o2 = (JObject)o["rates"];
+                //JObject o3 = (JObject)o2[currency2];
+                rate = Convert.ToDecimal((string)o2[currency2]);
             
             
 
